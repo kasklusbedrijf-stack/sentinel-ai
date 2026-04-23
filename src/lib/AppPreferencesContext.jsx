@@ -20,6 +20,16 @@ const CURRENCIES = [
   { code: 'PLN', symbol: 'zł', name: 'Polish Zloty' },
 ];
 
+// Conversion rates (USD base)
+// TODO: Replace with live FX API call (e.g., API endpoint or external service)
+// Currently using static rates for production safety — update rates monthly or integrate real-time API
+const CONVERSION_RATES = {
+  USD: 1.0,           // Base currency
+  EUR: 0.92,          // 1 USD = 0.92 EUR (approximate)
+  GBP: 0.79,          // 1 USD = 0.79 GBP (approximate)
+  PLN: 4.00,          // 1 USD = 4.00 PLN (approximate)
+};
+
 export const AppPreferencesProvider = ({ children }) => {
   const [language, setLanguage] = useState('en');
   const [currency, setCurrency] = useState('USD');
@@ -51,10 +61,17 @@ export const AppPreferencesProvider = ({ children }) => {
     return curr?.symbol || '$';
   };
 
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return '';
+  const convertAmount = (amountInUSD) => {
+    if (amountInUSD === undefined || amountInUSD === null) return 0;
+    const rate = CONVERSION_RATES[currency] || 1.0;
+    return amountInUSD * rate;
+  };
+
+  const formatCurrency = (amountInUSD) => {
+    if (amountInUSD === undefined || amountInUSD === null) return '';
     const symbol = getCurrencySymbol();
-    return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const convertedAmount = convertAmount(amountInUSD);
+    return `${symbol}${convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (
@@ -66,6 +83,7 @@ export const AppPreferencesProvider = ({ children }) => {
       languages: LANGUAGES,
       currencies: CURRENCIES,
       getCurrencySymbol,
+      convertAmount,
       formatCurrency,
       applyPreferences,
       hasUnsavedChanges,
