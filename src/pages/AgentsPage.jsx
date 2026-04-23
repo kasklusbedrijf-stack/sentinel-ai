@@ -246,11 +246,44 @@ export default function AgentsPage() {
   const [sending, setSending] = useState(false);
   const [pendingImages, setPendingImages] = useState([]); // array of base64 data URLs (max 5)
   const [lightboxSrc, setLightboxSrc] = useState(null);
+  const [showArchive, setShowArchive] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const unsubscribeRef = useRef({});
 
   const agent = AGENTS.find(a => a.name === selectedAgent);
+
+  // Load all conversations on mount
+  useEffect(() => {
+    const loadConversations = async () => {
+      const loadedConvs = {};
+      const lastActive = {};
+      
+      for (const ag of AGENTS) {
+        const agentConvs = await base44.agents.listConversations({ agent_name: ag.name });
+        loadedConvs[ag.name] = agentConvs || [];
+        
+        // Set last opened conversation if exists
+        if (agentConvs && agentConvs.length > 0) {
+          lastActive[ag.name] = agentConvs[0].id;
+        }
+      }
+      
+      setConversations(loadedConvs);
+      setActiveConvId(lastActive);
+    };
+    
+    loadConversations();
+  }, []);
+
+  // Auto-select first agent with previous conversations, or allow manual selection
+  useEffect(() => {
+    if (!selectedAgent && Object.keys(conversations).length > 0) {
+      const agentWithConvs = AGENTS.find(a => conversations[a.name]?.length > 0);
+      if (agentWithConvs) setSelectedAgent(agentWithConvs.name);
+    }
+  }, [conversations, selectedAgent]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -293,16 +326,40 @@ export default function AgentsPage() {
       agent_name: agentName,
       metadata: { name: `${agentName} - ${new Date().toLocaleString()}` },
     });
-    setConversations(prev => ({ ...prev, [agentName]: [...(prev[agentName] || []), conv] }));
+    setConversations(prev => ({ ...prev, [agentName]: [conv, ...(prev[agentName] || [])] }));
     setActiveConvId(prev => ({ ...prev, [agentName]: conv.id }));
     setMessages(prev => ({ ...prev, [`${agentName}:${conv.id}`]: conv.messages || [] }));
     setSelectedAgent(agentName);
+    setShowArchive(false);
 
+    // Subscribe to future updates
+    if (unsubscribeRef.current[conv.id]) unsubscribeRef.current[conv.id]();
     const unsub = base44.agents.subscribeToConversation(conv.id, (data) => {
       setMessages(prev => ({ ...prev, [`${agentName}:${conv.id}`]: data.messages || [] }));
     });
+    unsubscribeRef.current[conv.id] = unsub;
 
     return () => unsub();
+  };
+
+  const loadConversation = async (agentName, convId) => {
+    setSelectedAgent(agentName);
+    setActiveConvId(prev => ({ ...prev, [agentName]: convId }));
+    setShowArchive(false);
+
+    // Load conversation if not already in memory
+    const key = `${agentName}:${convId}`;
+    if (!messages[key]) {
+      const conv = await base44.agents.getConversation(convId);
+      setMessages(prev => ({ ...prev, [key]: conv.messages || [] }));
+    }
+
+    // Subscribe to future updates
+    if (unsubscribeRef.current[convId]) unsubscribeRef.current[convId]();
+    const unsub = base44.agents.subscribeToConversation(convId, (data) => {
+      setMessages(prev => ({ ...prev, [key]: data.messages || [] }));
+    });
+    unsubscribeRef.current[convId] = unsub;
   };
 
   const uploadImage = async (dataUrl) => {
@@ -384,7 +441,45 @@ export default function AgentsPage() {
       {lightboxSrc && <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
 
       <div className="flex h-[calc(100vh-56px)] overflow-hidden">
-        {/* Sidebar: agent list — hidden on mobile when chat is open */}
+        {/* Archive modal */}
+      {showArchive && selectedAgent && (
+        <div className="fixed inset-0 z-40 bg-black/60 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-xl w-full sm:max-w-md max-h-[70vh] sm:max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between flex-shrink-0">
+              <h3 className="text-sm font-semibold">Chat History — {agent?.label}</h3>
+              <button onClick={() => setShowArchive(false)} className="p-1 hover:bg-secondary rounded"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="overflow-y-auto flex-1 space-y-1 p-2">
+              {conversations[selectedAgent]?.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">No saved conversations yet</p>
+              ) : (
+                conversations[selectedAgent]?.map(conv => {
+                  const convKey = `${selectedAgent}:${conv.id}`;
+                  const convMessages = messages[convKey] || conv.messages || [];
+                  const lastMsg = convMessages[convMessages.length - 1];
+                  const isActive = activeConvId[selectedAgent] === conv.id;
+                  return (
+                    <button
+                      key={conv.id}
+                      onClick={() => loadConversation(selectedAgent, conv.id)}
+                      className={cn(
+                        "w-full text-left px-3 py-2.5 rounded-lg text-xs transition-all border",
+                        isActive ? 'bg-primary/10 border-primary/25' : 'bg-muted border-border hover:bg-accent/40'
+                      )}
+                    >
+                      <div className="font-semibold text-foreground truncate">{conv.metadata?.name || `Chat - ${new Date(conv.created_date).toLocaleDateString()}`}</div>
+                      {lastMsg && <div className="text-muted-foreground truncate mt-0.5">{lastMsg.content?.substring(0, 50)}</div>}
+                      <div className="text-muted-foreground/60 text-[10px] mt-1">{new Date(conv.created_date).toLocaleString()}</div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar: agent list — hidden on mobile when chat is open */}
         <div className={cn(
           "border-r border-border bg-card/50 flex flex-col flex-shrink-0 transition-all",
           "w-full sm:w-64",
@@ -477,6 +572,9 @@ export default function AgentsPage() {
                   <div className="font-semibold text-sm leading-tight">{agent?.label}</div>
                   <div className="text-xs text-muted-foreground truncate">{agent?.description.split('.')[0]}</div>
                 </div>
+                <Button size="sm" variant="outline" onClick={() => setShowArchive(true)} className="gap-1 flex-shrink-0 text-xs h-8 px-2 hidden sm:inline-flex" title="View chat history">
+                  <BarChart2 className="w-3 h-3" />
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => startNewConversation(selectedAgent)} className="gap-1.5 flex-shrink-0 text-xs h-8 px-2.5">
                   <Plus className="w-3 h-3" /> New
                 </Button>
@@ -487,6 +585,14 @@ export default function AgentsPage() {
                 {currentMessages.length === 0 && (
                   <div className="flex flex-col items-center pt-10 pb-4 px-2 text-center">
                     <p className="text-muted-foreground text-sm mb-5">Start a conversation with {agent?.label}</p>
+                    {conversations[selectedAgent]?.length > 0 && (
+                      <button
+                        onClick={() => setShowArchive(true)}
+                        className="px-4 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all mb-4 sm:hidden"
+                      >
+                        View {conversations[selectedAgent].length} saved chat(s)
+                      </button>
+                    )}
                     <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 w-full max-w-sm sm:max-w-none mb-4">
                       {agent?.examples.map(ex => (
                         <button
