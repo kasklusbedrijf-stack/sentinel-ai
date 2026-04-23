@@ -15,6 +15,8 @@ const navItems = [
   { path: '/positions', label: 'Positions', icon: Activity },
   { path: '/agents', label: 'AI Agents', icon: Bot },
   { path: '/alerts', label: 'Alerts', icon: Bell },
+  { path: '/risk', label: 'Risk Settings', icon: Shield },
+  { path: '/audit', label: 'Audit Log', icon: Activity },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
