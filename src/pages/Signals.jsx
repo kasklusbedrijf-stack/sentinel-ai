@@ -65,27 +65,27 @@ export default function Signals() {
         <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-36 sm:w-40 bg-card border-border text-sm h-9"><SelectValue placeholder="Signal type" /></SelectTrigger>
           <SelectContent className="bg-card border-border">
-            {['all', 'BUY', 'PARTIAL_BUY', 'HOLD', 'WAIT', 'PARTIAL_SELL', 'SELL'].map(t => (
-              <SelectItem key={t} value={t}>{t === 'all' ? 'All Types' : t}</SelectItem>
+            {['all', 'BUY', 'PARTIAL_BUY', 'HOLD', 'WAIT', 'PARTIAL_SELL', 'SELL'].map(typeVal => (
+              <SelectItem key={typeVal} value={typeVal}>{typeVal === 'all' ? t('signals_filter_all') : typeVal}</SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-32 sm:w-36 bg-card border-border text-sm h-9"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent className="bg-card border-border">
-            {['all', 'active', 'executed', 'expired', 'rejected'].map(s => (
-              <SelectItem key={s} value={s}>{s === 'all' ? 'All Status' : s}</SelectItem>
+            {['all', 'active', 'executed', 'expired', 'rejected'].map(statusVal => (
+              <SelectItem key={statusVal} value={statusVal}>{statusVal === 'all' ? t('signals_filter_all') : statusVal}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Badge variant="outline" className="px-3 py-1.5 font-mono text-xs">{filtered.length} signals</Badge>
+        <Badge variant="outline" className="px-3 py-1.5 font-mono text-xs">{filtered.length} {t('signals_title')}</Badge>
       </div>
 
       {filtered.length === 0 && (
         <Card className="bg-card border-border">
           <CardContent className="py-16 text-center">
             <Zap className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No signals found. Use the Trade Planner agent to generate signals.</p>
+            <p className="text-muted-foreground">{t('signals_no_signals')}</p>
           </CardContent>
         </Card>
       )}
@@ -145,11 +145,11 @@ export default function Signals() {
                 {/* Scores */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   {[
-                    ['Trend', signal.trend_score],
-                    ['Momentum', signal.momentum_score],
-                    ['Volume', signal.volume_score],
-                    ['Technical', signal.technical_score],
-                    ['Context', signal.market_context_score],
+                    [t('signals_trend_score'), signal.trend_score],
+                    [t('signals_momentum_score'), signal.momentum_score],
+                    [t('signals_volume_score'), signal.volume_score],
+                    [t('signals_technical_score'), signal.technical_score],
+                    [t('dashboard_active_signals'), signal.market_context_score],
                   ].map(([l, v]) => (
                     <div key={l} className="bg-card rounded-lg p-3 text-center">
                       <div className="text-xs text-muted-foreground mb-1">{l}</div>
@@ -192,7 +192,7 @@ export default function Signals() {
                 {/* Explanation */}
                 {signal.detailed_explanation && (
                   <div className="bg-card rounded-lg p-4 border border-border">
-                    <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">AI Explanation</div>
+                    <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">{t('signals_summary')}</div>
                     <p className="text-sm text-foreground leading-relaxed">{signal.detailed_explanation}</p>
                   </div>
                 )}
@@ -200,9 +200,9 @@ export default function Signals() {
                 {/* Actions */}
                 {signal.status === 'active' && (
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" onClick={() => handleStatusChange(signal, 'executed')} className="bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 text-xs">Accept & Execute</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(signal, 'rejected')} className="text-xs">Reject</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(signal, 'expired')} className="text-xs">Expire</Button>
+                    <Button size="sm" onClick={() => handleStatusChange(signal, 'executed')} className="bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 text-xs">{t('global_save')} &amp; {t('signals_summary')}</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(signal, 'rejected')} className="text-xs">{t('global_cancel')}</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(signal, 'expired')} className="text-xs">{t('signals_filter_expired')}</Button>
                   </div>
                 )}
               </div>

@@ -364,6 +364,8 @@ function AttachmentPreview({ imageDUrls, onRemove }) {
 
 export default function AgentsPage() {
   const { t, language } = useAppPreferences();
+  // Language-aware agent initialization: each agent's system prompt explicitly instructs
+  // the model to respond in the user's selected language and analyze only visible chart content
   const AGENTS = getAgents(language);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [conversations, setConversations] = useState({});

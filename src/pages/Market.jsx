@@ -3,11 +3,13 @@ import { base44 } from '@/api/base44Client';
 import { Search, TrendingUp, TrendingDown, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import AssetRow from '@/components/market/AssetRow';
 
 const CATEGORIES = ['All', 'Layer1', 'Layer2', 'DeFi', 'AI', 'Meme', 'Stablecoin', 'Exchange', 'Other'];
 
 export default function Market() {
+  const { t } = useAppPreferences();
   const [assets, setAssets] = useState([]);
   const [signals, setSignals] = useState([]);
   const [search, setSearch] = useState('');
@@ -50,17 +52,17 @@ export default function Market() {
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Market Overview</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Live prices, trends and AI signals</p>
-      </div>
+         <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('market_title')}</h1>
+         <p className="text-sm text-muted-foreground mt-0.5">{t('dashboard_active_signals')}</p>
+       </div>
 
       {/* Gainers / Losers */}
       <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
         <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 sm:p-4">
           <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
-            <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 flex-shrink-0" />
-            <span className="text-xs sm:text-sm font-semibold text-green-400 truncate">Top Gainers</span>
-          </div>
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-semibold text-green-400 truncate">{t('market_top_gainers')}</span>
+            </div>
           <div className="space-y-1.5 sm:space-y-2">
             {gainers.map(a => (
               <div key={a.id} className="flex items-center justify-between gap-1 min-w-0">
@@ -74,9 +76,9 @@ export default function Market() {
         </div>
         <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 sm:p-4">
           <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
-            <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 flex-shrink-0" />
-            <span className="text-xs sm:text-sm font-semibold text-red-400 truncate">Top Losers</span>
-          </div>
+              <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-semibold text-red-400 truncate">{t('market_top_losers')}</span>
+            </div>
           <div className="space-y-1.5 sm:space-y-2">
             {losers.map(a => (
               <div key={a.id} className="flex items-center justify-between gap-1 min-w-0">
@@ -95,22 +97,22 @@ export default function Market() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search assets..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9 bg-card border-border"
-          />
+             placeholder={t('market_search')}
+             value={search}
+             onChange={e => setSearch(e.target.value)}
+             className="pl-9 bg-card border-border"
+           />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-0.5">
-          {['market_cap', 'change_24h', 'volume'].map(s => (
+          {['market_cap', 'change_24h', 'volume'].map(sortVal => (
             <Button
-              key={s}
-              variant={sortBy === s ? 'default' : 'outline'}
+              key={sortVal}
+              variant={sortBy === sortVal ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSortBy(s)}
+              onClick={() => setSortBy(sortVal)}
               className="text-xs h-9 whitespace-nowrap flex-shrink-0"
             >
-              {s === 'market_cap' ? 'Market Cap' : s === 'change_24h' ? '24h Change' : 'Volume'}
+              {sortVal === 'market_cap' ? 'Market Cap' : sortVal === 'change_24h' ? t('market_sort_change_24h') : t('market_sort_volume')}
             </Button>
           ))}
         </div>
@@ -154,7 +156,7 @@ export default function Market() {
             <div className="w-6 h-6 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">No assets found</div>
+           <div className="text-center py-16 text-muted-foreground">{t('market_no_results')}</div>
         ) : (
           <div>
             {filtered.map(asset => (
