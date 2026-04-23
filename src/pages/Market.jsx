@@ -48,9 +48,9 @@ export default function Market() {
   const losers = [...assets].sort((a, b) => (a.price_change_24h || 0) - (b.price_change_24h || 0)).slice(0, 3);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-5 sm:space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Market Overview</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Market Overview</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Live prices, trends and AI signals</p>
       </div>
 

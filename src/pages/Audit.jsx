@@ -33,7 +33,34 @@ export default function Audit() {
         <p className="text-sm text-muted-foreground mt-1">Complete record of all system actions and events</p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-2">
+        {isLoading ? (
+          <div className="text-center py-12 text-muted-foreground">Loading logs...</div>
+        ) : logs.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">No audit logs recorded yet</div>
+        ) : logs.map(log => {
+          const IconComp = severityIcons[log.severity] || Info;
+          return (
+            <div key={log.id} className="bg-card border border-border rounded-xl p-4 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <Badge variant="outline" className="text-[10px] capitalize">{log.action?.replace(/_/g, ' ')}</Badge>
+                <div className="flex items-center gap-2">
+                  {log.asset_symbol && <span className="text-[10px] font-mono font-bold text-primary">{log.asset_symbol}</span>}
+                  <IconComp className={cn("w-4 h-4", severityColors[log.severity])} />
+                </div>
+              </div>
+              <p className="text-sm text-foreground leading-relaxed">{log.details}</p>
+              <p className="text-xs font-mono text-muted-foreground">
+                {log.created_date && format(new Date(log.created_date), 'MMM d, HH:mm:ss')}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

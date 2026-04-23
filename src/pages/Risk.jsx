@@ -87,22 +87,24 @@ export default function Risk() {
   );
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
+      <div className="space-y-3">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><Shield className="w-6 h-6 text-primary" /> Risk Settings</h1>
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><Shield className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> Risk Settings</h1>
           <p className="text-muted-foreground text-sm mt-1">Capital protection rules and trading constraints</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <Button
             onClick={triggerEmergencyStop}
             variant={settings.emergency_stop_active ? "destructive" : "outline"}
-            className={cn("gap-2", settings.emergency_stop_active && "animate-pulse")}
+            size="sm"
+            className={cn("gap-2 flex-1 sm:flex-none", settings.emergency_stop_active && "animate-pulse")}
           >
             <Power className="w-4 h-4" />
-            {settings.emergency_stop_active ? 'Emergency STOP ON' : 'Emergency Stop'}
+            <span className="hidden xs:inline">{settings.emergency_stop_active ? 'Emergency STOP ON' : 'Emergency Stop'}</span>
+            <span className="xs:hidden">{settings.emergency_stop_active ? 'STOP ON' : 'E-Stop'}</span>
           </Button>
-          <Button onClick={save} disabled={saving} className="gap-2">
+          <Button onClick={save} disabled={saving} size="sm" className="gap-2 flex-1 sm:flex-none">
             <Save className="w-4 h-4" />{saving ? 'Saving…' : 'Save Settings'}
           </Button>
         </div>

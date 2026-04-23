@@ -30,14 +30,14 @@ export default function Positions() {
   const closed = positions.filter((p) => p.status !== 'open');
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5 p-4 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Open Positions</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Open Positions</h1>
           <p className="text-muted-foreground text-sm mt-0.5">Active trades with full risk management</p>
         </div>
-        <Button onClick={() => setShowAdd(!showAdd)} className="gap-2">
-          <Plus className="w-4 h-4" /> Manual Position
+        <Button onClick={() => setShowAdd(!showAdd)} size="sm" className="gap-1.5 flex-shrink-0">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Manual Position</span><span className="sm:hidden">Add</span>
         </Button>
       </div>
 
@@ -45,7 +45,7 @@ export default function Positions() {
       {showAdd && (
         <div className="bg-card border border-primary/30 rounded-xl p-5">
           <h3 className="font-semibold text-foreground mb-4">Add Manual Position</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {[
               { key: 'asset_symbol', label: 'Symbol', placeholder: 'BTC' },
               { key: 'entry_price', label: 'Entry Price', placeholder: '45000', type: 'number' },

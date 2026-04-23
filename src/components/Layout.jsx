@@ -110,9 +110,12 @@ export default function Layout() {
 
           <div className="flex-1" />
 
-          <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/5">
+          <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/5 hidden sm:flex">
             <Shield className="w-3 h-3 mr-1" />
             Capital Protection ON
+          </Badge>
+          <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/5 sm:hidden">
+            <Shield className="w-3 h-3" />
           </Badge>
 
           <Link to="/alerts">

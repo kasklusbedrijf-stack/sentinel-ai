@@ -51,15 +51,15 @@ export default function Alerts() {
   );
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2"><Bell className="w-6 h-6 text-primary" /> Alerts</h1>
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><Bell className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> Alerts</h1>
           <p className="text-muted-foreground text-sm mt-1">{unreadCount} unread alerts</p>
         </div>
         {unreadCount > 0 && (
-          <Button size="sm" variant="outline" onClick={markAllRead} className="gap-2">
-            <CheckCheck className="w-4 h-4" /> Mark All Read
+          <Button size="sm" variant="outline" onClick={markAllRead} className="gap-2 flex-shrink-0">
+            <CheckCheck className="w-4 h-4" /> <span className="hidden sm:inline">Mark All Read</span><span className="sm:hidden">Read All</span>
           </Button>
         )}
       </div>

@@ -17,26 +17,30 @@ export default function AssetRow({ asset, signal }) {
 
   return (
     <Link to={`/asset/${asset.id}`}>
-      <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/40 transition-colors cursor-pointer border-b border-border/50 last:border-0">
+      <div className="flex items-center gap-3 sm:gap-4 px-4 py-3 hover:bg-muted/40 transition-colors cursor-pointer border-b border-border/50 last:border-0">
         {/* Symbol */}
-        <div className="w-32 flex items-center gap-2.5 flex-shrink-0">
-          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-primary">
+        <div className="flex items-center gap-2.5 flex-shrink-0 min-w-0 flex-1 sm:flex-none sm:w-32">
+          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
             {asset.symbol?.slice(0, 2)}
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="text-sm font-semibold text-foreground">{asset.symbol}</div>
             <div className="text-xs text-muted-foreground truncate max-w-[80px]">{asset.name}</div>
           </div>
         </div>
 
-        {/* Price */}
-        <div className="w-28 flex-shrink-0">
+        {/* Price — always visible */}
+        <div className="flex-shrink-0 text-right sm:text-left sm:w-28">
           <div className="text-sm font-mono font-semibold text-foreground">
-            ${asset.current_price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+            ${asset.current_price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: asset.current_price > 1 ? 2 : 6 })}
+          </div>
+          {/* 24h change visible on mobile only */}
+          <div className="sm:hidden">
+            <PctChange value={asset.price_change_24h} />
           </div>
         </div>
 
-        {/* Changes */}
+        {/* Changes — sm and up */}
         <div className="hidden sm:flex gap-4 flex-1">
           <div className="w-16 text-center"><PctChange value={asset.price_change_1h} /></div>
           <div className="w-16 text-center"><PctChange value={asset.price_change_24h} /></div>

@@ -112,8 +112,12 @@ export default function AgentsPage() {
 
   return (
     <div className="flex h-[calc(100vh-56px)] overflow-hidden">
-      {/* Sidebar: agent list */}
-      <div className="w-64 border-r border-border bg-card/50 flex flex-col flex-shrink-0">
+      {/* Sidebar: agent list — hidden on mobile when chat is open */}
+      <div className={cn(
+        "border-r border-border bg-card/50 flex flex-col flex-shrink-0 transition-all",
+        "w-full sm:w-64",
+        selectedAgent ? "hidden sm:flex" : "flex"
+      )}>
         <div className="p-4 border-b border-border">
           <h2 className="font-bold text-sm flex items-center gap-2"><Bot className="w-4 h-4 text-primary" /> AI Agents</h2>
           <p className="text-xs text-muted-foreground mt-1">Chat with specialized agents</p>
@@ -146,13 +150,13 @@ export default function AgentsPage() {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={cn("flex-1 flex flex-col min-w-0", !selectedAgent && "hidden sm:flex")}>
         {!selectedAgent ? (
-          <div className="flex-1 flex items-center justify-center p-8">
+          <div className="flex-1 flex items-center justify-center p-6">
             <div className="text-center max-w-lg">
-              <Bot className="w-16 h-16 text-primary/40 mx-auto mb-4" />
+              <Bot className="w-14 h-14 text-primary/40 mx-auto mb-4" />
               <h2 className="text-xl font-bold mb-2">Choose an AI Agent</h2>
-              <p className="text-muted-foreground text-sm mb-8">Each agent specializes in a different aspect of crypto trading.</p>
+              <p className="text-muted-foreground text-sm mb-6">Each agent specializes in a different aspect of crypto trading.</p>
               <div className="grid grid-cols-2 gap-3">
                 {AGENTS.map(ag => {
                   const Icon = ag.icon;
@@ -162,9 +166,9 @@ export default function AgentsPage() {
                       onClick={() => startNewConversation(ag.name)}
                       className={cn("p-4 rounded-xl border-2 text-left hover:scale-[1.02] transition-all", ag.color)}
                     >
-                      <Icon className="w-6 h-6 mb-2" />
+                      <Icon className="w-5 h-5 mb-2" />
                       <div className="font-semibold text-sm">{ag.label}</div>
-                      <div className="text-xs text-muted-foreground mt-1 leading-relaxed">{ag.description}</div>
+                      <div className="text-xs text-muted-foreground mt-1 leading-relaxed hidden sm:block">{ag.description}</div>
                     </button>
                   );
                 })}
@@ -174,21 +178,28 @@ export default function AgentsPage() {
         ) : (
           <>
             {/* Agent header */}
-            <div className="px-6 py-3 border-b border-border bg-card/50 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-3">
-                {(() => { const ag = AGENTS.find(a => a.name === selectedAgent); const Icon = ag?.icon; return Icon ? <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center border", ag.color)}><Icon className="w-4 h-4" /></div> : null; })()}
-                <div>
+            <div className="px-4 py-3 border-b border-border bg-card/50 flex items-center justify-between flex-shrink-0 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                {/* Back button on mobile */}
+                <button
+                  onClick={() => setSelectedAgent(null)}
+                  className="sm:hidden flex items-center justify-center w-8 h-8 rounded-lg hover:bg-secondary/50 text-muted-foreground flex-shrink-0"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                {(() => { const ag = AGENTS.find(a => a.name === selectedAgent); const Icon = ag?.icon; return Icon ? <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center border flex-shrink-0", ag.color)}><Icon className="w-4 h-4" /></div> : null; })()}
+                <div className="min-w-0">
                   <div className="font-semibold text-sm">{agent?.label}</div>
-                  <div className="text-xs text-muted-foreground">{agent?.description}</div>
+                  <div className="text-xs text-muted-foreground truncate hidden sm:block">{agent?.description}</div>
                 </div>
               </div>
-              <Button size="sm" variant="outline" onClick={() => startNewConversation(selectedAgent)} className="gap-2">
-                <Plus className="w-3 h-3" /> New Chat
+              <Button size="sm" variant="outline" onClick={() => startNewConversation(selectedAgent)} className="gap-1.5 flex-shrink-0 text-xs">
+                <Plus className="w-3 h-3" /> New
               </Button>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               {currentMessages.length === 0 && (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground text-sm mb-4">Start a conversation with {agent?.label}</p>
@@ -257,17 +268,17 @@ export default function AgentsPage() {
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-border">
-              <div className="flex gap-3">
+            <div className="p-3 sm:p-4 border-t border-border">
+              <div className="flex gap-2">
                 <Input
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder={`Ask ${agent?.label}…`}
-                  className="flex-1 bg-secondary border-border"
+                  className="flex-1 bg-secondary border-border text-sm"
                   disabled={sending}
                 />
-                <Button onClick={sendMessage} disabled={!input.trim() || sending} size="icon">
+                <Button onClick={sendMessage} disabled={!input.trim() || sending} size="icon" className="flex-shrink-0">
                   {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </Button>
               </div>

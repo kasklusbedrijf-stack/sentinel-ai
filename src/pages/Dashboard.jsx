@@ -51,7 +51,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-5 sm:space-y-6">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
@@ -67,7 +67,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatsCard
           title="Portfolio Value"
           value={`$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -121,14 +121,30 @@ export default function Dashboard() {
 
       {/* Open Positions preview */}
       {positions.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-sm font-semibold text-foreground">Open Positions</h3>
             <Link to="/positions">
               <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">View all</Button>
             </Link>
           </div>
-          <div className="overflow-x-auto">
+          {/* Mobile: compact card list */}
+          <div className="sm:hidden space-y-2">
+            {positions.slice(0, 5).map(pos => (
+              <div key={pos.id} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
+                <div>
+                  <p className="font-semibold text-sm text-foreground">{pos.asset_symbol}</p>
+                  <p className="text-xs text-muted-foreground font-mono">${pos.entry_price?.toFixed(2)} → ${pos.current_price?.toFixed(2)}</p>
+                </div>
+                <div className="text-right">
+                  <PnlText value={pos.unrealized_pnl_pct} suffix="%" />
+                  <p className="text-xs text-muted-foreground">Risk {pos.risk_pct?.toFixed(1)}%</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Desktop: table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-muted-foreground border-b border-border">
@@ -143,18 +159,10 @@ export default function Dashboard() {
                 {positions.slice(0, 5).map(pos => (
                   <tr key={pos.id} className="hover:bg-muted/30 transition-colors">
                     <td className="py-2.5 font-semibold text-foreground">{pos.asset_symbol}</td>
-                    <td className="py-2.5 text-right font-mono text-muted-foreground text-xs">
-                      ${pos.entry_price?.toFixed(2)}
-                    </td>
-                    <td className="py-2.5 text-right font-mono text-xs">
-                      ${pos.current_price?.toFixed(2)}
-                    </td>
-                    <td className="py-2.5 text-right">
-                      <PnlText value={pos.unrealized_pnl_pct} suffix="%" />
-                    </td>
-                    <td className="py-2.5 text-right text-xs text-muted-foreground font-mono">
-                      {pos.risk_pct?.toFixed(1)}%
-                    </td>
+                    <td className="py-2.5 text-right font-mono text-muted-foreground text-xs">${pos.entry_price?.toFixed(2)}</td>
+                    <td className="py-2.5 text-right font-mono text-xs">${pos.current_price?.toFixed(2)}</td>
+                    <td className="py-2.5 text-right"><PnlText value={pos.unrealized_pnl_pct} suffix="%" /></td>
+                    <td className="py-2.5 text-right text-xs text-muted-foreground font-mono">{pos.risk_pct?.toFixed(1)}%</td>
                   </tr>
                 ))}
               </tbody>
