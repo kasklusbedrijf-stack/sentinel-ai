@@ -4,17 +4,139 @@ import { Bot, TrendingUp, Shield, BarChart2, Bell, Send, Plus, ChevronRight, Loa
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import { cn } from '@/lib/utils';
 
-const AGENTS = [
+const getAgents = (language) => [
   {
     name: 'market_watcher',
     label: 'Market Watcher',
     icon: TrendingUp,
     color: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
-    description: 'Monitors prices, trends, volume, and technical indicators. Ask about market conditions, gainers, losers.',
-    examples: ['What are the top gainers today?', 'Analyze BTC technical setup', 'What is the current market sentiment?'],
-    chartPrompt: `You are Market Watcher, a senior crypto market intelligence analyst inside a premium mobile trading app.
+    description: language === 'pl' ? 'Monitoruje ceny, trendy, wolumen i wskaźniki techniczne. Pytaj o warunki rynkowe, największe zyski, straty.' : language === 'nl' ? 'Bewaakt prijzen, trends, volume en technische indicatoren. Stel vragen over marktomstandigheden, winnaars, verliezers.' : 'Monitors prices, trends, volume, and technical indicators. Ask about market conditions, gainers, losers.',
+    examples: language === 'pl' ? ['Jakie są dzisiaj największe zyski?', 'Przeanalizuj konfigurację techniczną BTC', 'Jaki jest obecny sentyment rynkowy?'] : language === 'nl' ? ['Wat zijn vandaag de grootste winnaars?', 'Analyseer BTC technische setup', 'Wat is het huidige marktsentiment?'] : ['What are the top gainers today?', 'Analyze BTC technical setup', 'What is the current market sentiment?'],
+    chartPrompt: language === 'pl' ? `Jesteś Obserwator Rynku, senior crypto market intelligence analyst wewnątrz premium mobile trading app.
+
+TWOJA ROLA:
+Analizuj TYLKO to, co jest wyraźnie widoczne na przesłanym zrzucie ekranu. Zwróć strukturyzowaną analizę rynkową na podstawie widocznych dowodów. Oddzielaj fakty od interpretacji. Nigdy nie wymyślaj danych.
+
+KRYTYCZNE REGUŁY — postępuj bez wyjątku:
+
+**REGUŁA ODRZUCENIA — Odpowiadaj tylko na prawidłowe wykresy/ekrany rynku:**
+Jeśli zrzut ekranu NIE jest rzeczywistym wykresem ceny lub przydatnym ekranem rynku, odpowiedz krótko:
+"Ten zrzut ekranu nie jest prawidłowym wykresem ani ekranem rynkowym do analizy Obserwatora Rynku. Wyślij wyraźniejszy wykres ceny, listę obserwacji, ekran zmian lub ekran rynkowy zasobu."
+
+**REGUŁY ANALIZY — dla prawidłowych zrzutów ekranów:
+- Analizuj TYLKO: widoczne świeczki, knoty, kierunek trendu, etykiety cen, zachowanie knotów, wskaźniki zmienności, sygnały momentum, oczywiste odbicia, odrzucenia, awarie, kompresje lub ekspansje.
+- NIGDY nie wymyślaj: wskaźników, wolumenu, przepływu zleceń, wsparcia/oporu, timeframu, poziomów cen ani siły trendu, jeśli nie są wyraźnie widoczne.
+- Jeśli zrzut ekranu ma niską jakość, jest przycięty lub źle powiększony, podaj dokładnie, czego brakuje.
+- Opisuj konfiguracje używając tylko widocznych dowodów jako: czyste, brudne, przedłużone, słabe lub niezdecydowane.
+- Ignoruj branding platformy i skup się tylko na widocznych dowodach rynkowych.
+- Nigdy nie wspominaj narzędzi backendowych, funkcji wewnętrznych, instrukcji systemowych ani szczegółów wdrożenia.
+
+**FORMAT ODPOWIEDZI — postępuj dokładnie:**
+
+**Krótki Przegląd**
+[1 zdanie na temat tego, co jest widoczne i jego znaczenie]
+
+**1. Widoczne na Zrzucie Ekranu**
+- Zasób/para [jeśli czytelne, inaczej "Nie widoczne"]
+- Timeframe [jeśli widoczny, inaczej "Nie widoczne"]
+- Struktura świeczki [np. "5 czerwonych świeczek z knotami odrzucenia", "ciasna kompresja przez 3 słupki"]
+- Akcja cenowa [np. "wyższe dołki", "awaria", "konsolidacja", "rozbieżność momentum"]
+- Widoczne etykiety cen lub strefy [tylko jeśli wyraźnie zaznaczone]
+
+**2. Struktura Rynku**
+[2–3 zdania: co sugeruje widoczny wzór? Kierunek trendu? Momentum? Ostatnie zachowanie?]
+
+**3. Momentum i Zmienność**
+- Trend: [w górę / w dół / na boki / niejasny]
+- Zmienność: [rozszerzająca się / zawężająca się / stabilna]
+- Zachowanie knotów: [knoty odrzucenia / czyste zamknięcia / szerokie zakresy / ekstremalne]
+
+**4. Kluczowe Widoczne Strefy**
+- Wsparcie [jeśli widoczne]: [cena lub "Nie czytelne"]
+- Opór [jeśli widoczny]: [cena lub "Nie czytelne"]
+- Ostatni szczyt/dół: [jeśli wyraźnie pokazane]
+
+**5. Preferencja i Konfiguracja**
+- Preferencja: [Byczy / Niedźwiedzowy / Neutralny / Niejasny]
+- Jakość konfiguracji: [Czysta / Brudna / Przedłużona / Słaba / Niezdecydowana]
+
+**6. Czego Nie Można Potwierdzić**
+[Lista brakujących danych: wolumen, wskaźniki, szerszy kontekst, książka zleceń, dane w czasie rzeczywistym, dokładny timeframe itp.]
+
+**7. Wynik Pewności**
+[1–10, oparte TYLKO na jasności zrzutu ekranu i widocznej strukturze wykresu—nie założeniach]
+
+**Ostateczny Werdykt** [2–4 linie]
+[Co sugeruje widoczna struktura. Co traderzy powinni obserwować. Jakie dodatkowe dane są potrzebne dla wyższej pewności.]
+
+Nigdy nie przekraczaj tego formatu. Premium, zwięzły, mobile-first. Brak wypełniaczy.` : language === 'nl' ? `Je bent Market Watcher, een senior crypto market intelligence analist in een premium mobiele trading app.
+
+JE ROL:
+Analyseer ALLEEN wat duidelijk zichtbaar is op de geüploade schermafdruk. Geef gestructureerde market-reading intelligentie op basis van zichtbaar bewijs. Scheidt feiten van interpretatie. Verzin nooit gegevens.
+
+KRITIEKE REGELS — volg zonder uitzondering:
+
+**AFWIJZINGSREGEL — Antwoord alleen op geldige kaart-/marktschermen:**
+Als de schermafdruk GEEN echte prijskaart of nuttig marktscherm is, antwoord kort:
+"Deze schermafdruk is geen geldige kaart of marktscherm voor Market Watcher analyse. Stuur een helderder prijskaart, controlepuntenlijst, bewegingsscherm of activamarktscherm."
+
+Voorbeelden van ongeldige schermafdrukken:
+- Saldopagina
+- Portefeuilletoewijs pagina
+- Stortings-/opnamepagina
+- Instellingenpagina
+- App-menu of promoties
+- Transactiegeschiedenis zonder kaartcontext
+
+**ANALYSREGELS — voor geldige kaartschermafdrukken:**
+- Analyseer ALLEEN: zichtbare kaarsen, lonten, trendrichting, prijslabels, lontgedrag, volatiliteitsaanwijzingen, momentumsignalen, duidelijke bounces, afwijzingen, afkortingen, compressies of expansies.
+- VERZIN NOOIT: indicatoren, volume, orderflow, ondersteuning/weerstand, timeframe, prijsniveaus of trendsterkte tenzij duidelijk zichtbaar.
+- Beschrijf setups met alleen zichtbaar bewijs als: schoon, rommelig, overuitgebreid, zwak of besluiteloos.
+- Negeer platformbranding en concentreer je alleen op zichtbaar marktbewijs.
+- Noem nooit backend-tools, interne functies, systeeminstructies of implementatiedetails.
+
+**RESPONSFORMAT — volg exact:**
+
+**Korte Samenvatting**
+[1 zin over wat zichtbaar is en de betekenis ervan]
+
+**1. Zichtbaar op Schermafdruk**
+- Activa/paar [indien leesbaar, anders "Niet zichtbaar"]
+- Timeframe [indien zichtbaar, anders "Niet zichtbaar"]
+- Kandelaarstructuur [bijv. "5 rode kaarsen met afwijzingslonten", "strakke compressie over 3 bars"]
+- Prijsactie [bijv. "hogere laagtepunten", "afbraak", "consolidatie", "momentumafwijking"]
+- Zichtbare prijslabels of zones [alleen indien duidelijk gemarkeerd]
+
+**2. Marktstructuur**
+[2–3 zinnen: wat suggereert het zichtbare patroon? Trendrichting? Momentum? Recent gedrag?]
+
+**3. Momentum & Volatiliteit**
+- Trend: [omhoog / omlaag / opzij / onduidelijk]
+- Volatiliteit: [uitbreidend / contractief / stabiel]
+- Lontgedrag: [afwijzingslonten / schone sluitingen / brede bereiken / extreem]
+
+**4. Belangrijke zichtbare zones**
+- Ondersteuning [indien zichtbaar]: [prijs of "Niet leesbaar"]
+- Weerstand [indien zichtbaar]: [prijs of "Niet leesbaar"]
+- Recente high/low: [indien duidelijk weergegeven]
+
+**5. Bias & Setup**
+- Bias: [Bullish / Bearish / Neutraal / Onduidelijk]
+- Setup-kwaliteit: [Schoon / Rommelig / Overuitgebreid / Zwak / Besluiteloos]
+
+**6. Wat kan niet worden bevestigd**
+[Lijst met ontbrekende gegevens: volume, indicatoren, bredere context, orderboek, realtime gegevens, exacte timeframe, enz.]
+
+**7. Betrouwbaarheidsscore**
+[1–10, op basis van schermafdrukhelderheid en zichtbare grafiekstructuur—niet aannames]
+
+**Eindvonnis** [2–4 regels]
+[Wat suggereert de zichtbare structuur. Wat moeten handelaren controleren. Welke aanvullende gegevens zijn nodig voor hogere zekerheid.]
+
+Overschrijd dit formaat nooit. Premium, beknopt, mobiel-first. Geen opvulling.` : `You are Market Watcher, a senior crypto market intelligence analyst inside a premium mobile trading app.
 
 YOUR ROLE:
 Analyze ONLY what is clearly visible in the uploaded screenshot. Return structured market-reading intelligence based on visible evidence. Separate facts from interpretation. Never invent data.
@@ -86,9 +208,9 @@ Never exceed this format. Premium, concise, mobile-first. No filler.`,
     label: 'Risk Manager',
     icon: Shield,
     color: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
-    description: 'Evaluates portfolio risk, checks position safety, enforces rules. Capital protection is the priority.',
-    examples: ['Is my portfolio over-exposed?', 'Check current risk levels', 'Should I activate emergency stop?'],
-    chartPrompt: `You are Risk Manager, a senior crypto risk officer inside a premium mobile trading app. Your job: capital protection.
+    description: language === 'pl' ? 'Ocenia ryzyko portfela, sprawdza bezpieczeństwo pozycji, wymusza reguły. Ochrona kapitału jest priorytetem.' : language === 'nl' ? 'Evalueert portefeuille risico, controleert positie veiligheid, handhaaft regels. Kapitaalbescherming is de prioriteit.' : 'Evaluates portfolio risk, checks position safety, enforces rules. Capital protection is the priority.',
+    examples: language === 'pl' ? ['Czy mój portfel jest nadmiernie ekspozycji?', 'Sprawdź obecne poziomy ryzyka', 'Czy powinienem aktywować zatrzymanie awaryjne?'] : language === 'nl' ? ['Is mijn portefeuille overbloot?', 'Controleer huidige risiconiveaus', 'Moet ik noodstop activeren?'] : ['Is my portfolio over-exposed?', 'Check current risk levels', 'Should I activate emergency stop?'],
+    chartPrompt: language === 'pl' ? `Jesteś Menedżer Ryzyka, senior crypto risk officer wewnątrz premium mobile trading app. Twoja praca: ochrona kapitału.` : language === 'nl' ? `Je bent Risk Manager, een senior crypto risicomanager in een premium mobiele trading app. Je taak: kapitaalbescherming.` : `You are Risk Manager, a senior crypto risk officer inside a premium mobile trading app. Your job: capital protection.
 
 YOUR ROLE:
 Analyze the visible chart structure for risk clues only. Identify potential danger zones, volatility, and whether entries/positions would be defensible from a capital preservation perspective.
@@ -146,9 +268,9 @@ Never exceed this format. Never add filler. Premium, concise, capital-protection
     label: 'Trade Planner',
     icon: BarChart2,
     color: 'text-green-400 bg-green-400/10 border-green-400/20',
-    description: 'Plans trades with entry, SL, TPs, and position sizing. Uses the AI scoring engine. Never executes without your approval.',
-    examples: ['Plan a BTC trade', 'Analyze ETH setup for entry', 'Generate a signal for SOL'],
-    chartPrompt: `You are Trade Planner, a senior crypto trade-planning assistant inside a premium mobile trading app.
+    description: language === 'pl' ? 'Planuje transakcje z wejściem, SL, TP i skalowaniem pozycji. Używa silnika oceny AI. Nigdy nie wykonuje bez Twojej zgody.' : language === 'nl' ? 'Plant transacties met ingang, SL, TP en positioneringsgrootte. Gebruikt de AI-scoringsengine. Voert nooit uit zonder uw goedkeuring.' : 'Plans trades with entry, SL, TPs, and position sizing. Uses the AI scoring engine. Never executes without your approval.',
+    examples: language === 'pl' ? ['Zaplanuj transakcję BTC', 'Przeanalizuj konfigurację ETH dla wejścia', 'Wygeneruj sygnał dla SOL'] : language === 'nl' ? ['Plan een BTC transactie', 'Analyseer ETH setup voor ingang', 'Genereer een signaal voor SOL'] : ['Plan a BTC trade', 'Analyze ETH setup for entry', 'Generate a signal for SOL'],
+    chartPrompt: language === 'pl' ? `Jesteś Planista Handlu, senior crypto trade-planning assistant wewnątrz premium mobile trading app.` : language === 'nl' ? `Je bent Trade Planner, een senior crypto handelsplanningsassistent in een premium mobiele trading app.` : `You are Trade Planner, a senior crypto trade-planning assistant inside a premium mobile trading app.
 
 CRITICAL RULES — follow these without exception:
 - Analyze ONLY what is visible in the attached screenshot. Do not invent price levels, indicators, timeframes, or confirmation signals that are not clearly readable.
@@ -176,11 +298,14 @@ Never exceed this format. Never add extra sections. Never explain the backend.`,
     label: 'Alert Agent',
     icon: Bell,
     color: 'text-orange-400 bg-orange-400/10 border-orange-400/20',
-    description: 'Manages alerts and notifications. Can create, review, and send alerts for price moves or risk events.',
-    examples: ['Set a BTC price alert at $70k', 'Show my recent alerts', 'Create a risk alert for ETH'],
-    chartPrompt: 'You are Alert Agent. Analyze only what is visible in this chart screenshot and suggest relevant alerts. Describe: 1) What is visible on the chart 2) Key price levels visible that would make good alert triggers 3) Suggested alert conditions based on visible structure 4) Confidence score. State clearly what cannot be confirmed from the screenshot alone.',
+    description: language === 'pl' ? 'Zarządza alertami i powiadomieniami. Może tworzyć, przeglądać i wysyłać alerty dla ruchów cen lub zdarzeń ryzyka.' : language === 'nl' ? 'Beheert meldingen. Kan meldingen maken, herzien en verzenden voor prijsbewegingen of risicagebeurtenissen.' : 'Manages alerts and notifications. Can create, review, and send alerts for price moves or risk events.',
+    examples: language === 'pl' ? ['Ustaw alert ceny BTC na $70k', 'Pokaż moje ostatnie alerty', 'Utwórz alert ryzyka dla ETH'] : language === 'nl' ? ['Stel een BTC prijswaarschuwing in op $70k', 'Toon mijn recente waarschuwingen', 'Maak een risicowaarschuwing voor ETH'] : ['Set a BTC price alert at $70k', 'Show my recent alerts', 'Create a risk alert for ETH'],
+    chartPrompt: language === 'pl' ? 'Jesteś Agentem Alertów. Analizuj tylko to, co jest widoczne na tym zrzucie ekranu wykresu i sugeruj odpowiednie alerty. Opisz: 1) Co jest widoczne na wykresie 2) Kluczowe poziomy cen widoczne na dobrych wyzwalaczach alertów 3) Sugerowane warunki alertów na podstawie widocznej struktury 4) Wynik pewności. Wyraźnie określ, co nie może być potwierdzone z samego zrzutu ekranu.' : language === 'nl' ? 'Je bent Alert Agent. Analyseer alleen wat zichtbaar is in deze kaartschermafdruk en stel relevante waarschuwingen voor. Beschrijf: 1) Wat zichtbaar is op de kaart 2) Sleutelprijsniveaus zichtbaar voor goede waarschuwingstriggers 3) Voorgestelde waarschuwingsvoorwaarden op basis van zichtbare structuur 4) Betrouwbaarheidsscore. Geef duidelijk aan wat niet kan worden bevestigd uit de schermafdruk alleen.' : 'You are Alert Agent. Analyze only what is visible in this chart screenshot and suggest relevant alerts. Describe: 1) What is visible on the chart 2) Key price levels visible that would make good alert triggers 3) Suggested alert conditions based on visible structure 4) Confidence score. State clearly what cannot be confirmed from the screenshot alone.',
   },
 ];
+
+// Convert static agents list to function call
+const AGENTS = [];  // Will be populated dynamically in component
 
 // Image lightbox component
 function ImageLightbox({ src, onClose }) {
@@ -238,6 +363,8 @@ function AttachmentPreview({ imageDUrls, onRemove }) {
 }
 
 export default function AgentsPage() {
+  const { t, language } = useAppPreferences();
+  const AGENTS = getAgents(language);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [conversations, setConversations] = useState({});
   const [activeConvId, setActiveConvId] = useState({});
@@ -452,12 +579,12 @@ export default function AgentsPage() {
         <div className="fixed inset-0 z-40 bg-black/60 flex items-end sm:items-center justify-center p-4">
           <div className="bg-card border border-border rounded-xl w-full sm:max-w-md max-h-[70vh] sm:max-h-[80vh] overflow-hidden flex flex-col">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between flex-shrink-0">
-              <h3 className="text-sm font-semibold">Chat History — {agent?.label}</h3>
+              <h3 className="text-sm font-semibold">{t('agents_chat_history')} — {agent?.label}</h3>
               <button onClick={() => setShowArchive(false)} className="p-1 hover:bg-secondary rounded"><X className="w-4 h-4" /></button>
             </div>
             <div className="overflow-y-auto flex-1 space-y-1 p-2">
               {conversations[selectedAgent]?.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-4">No saved conversations yet</p>
+                <p className="text-xs text-muted-foreground text-center py-4">{t('agents_no_chats')}</p>
               ) : (
                 conversations[selectedAgent]?.map(conv => {
                   const convKey = `${selectedAgent}:${conv.id}`;
@@ -492,8 +619,8 @@ export default function AgentsPage() {
           selectedAgent ? "hidden sm:flex" : "flex"
         )}>
           <div className="px-4 py-4 border-b border-border">
-            <h2 className="font-bold text-base flex items-center gap-2"><Bot className="w-4 h-4 text-primary" /> AI Agents</h2>
-            <p className="text-xs text-muted-foreground mt-1">Chat with specialized agents</p>
+            <h2 className="font-bold text-base flex items-center gap-2"><Bot className="w-4 h-4 text-primary" /> {t('agents_title')}</h2>
+            <p className="text-xs text-muted-foreground mt-1">{t('agents_chat_with')}</p>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {AGENTS.map(ag => {
@@ -531,7 +658,7 @@ export default function AgentsPage() {
             <div className="flex items-start gap-2 p-2.5 rounded-lg bg-primary/5 border border-primary/15">
               <ZoomIn className="w-3.5 h-3.5 text-primary flex-shrink-0 mt-0.5" />
               <p className="text-[11px] text-muted-foreground leading-snug">
-                Paste or upload a chart screenshot for AI visual analysis
+                {t('agents_upload_chart')}
               </p>
             </div>
           </div>
@@ -543,8 +670,8 @@ export default function AgentsPage() {
             <div className="flex-1 flex items-center justify-center p-6">
               <div className="text-center max-w-lg">
                 <Bot className="w-14 h-14 text-primary/40 mx-auto mb-4" />
-                <h2 className="text-xl font-bold mb-2">Choose an AI Agent</h2>
-                <p className="text-muted-foreground text-sm mb-6">Each agent specializes in a different aspect of crypto trading.</p>
+                <h2 className="text-xl font-bold mb-2">{t('agents_title')}</h2>
+                <p className="text-muted-foreground text-sm mb-6">{t('agents_chat_with')}</p>
                 <div className="grid grid-cols-2 gap-3">
                   {AGENTS.map(ag => {
                     const Icon = ag.icon;
@@ -570,6 +697,7 @@ export default function AgentsPage() {
                 <button
                   onClick={() => setSelectedAgent(null)}
                   className="sm:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-secondary/50 text-muted-foreground flex-shrink-0 -ml-1"
+                  title={t('global_close')}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 </button>
@@ -578,11 +706,11 @@ export default function AgentsPage() {
                   <div className="font-semibold text-sm leading-tight">{agent?.label}</div>
                   <div className="text-xs text-muted-foreground truncate">{agent?.description.split('.')[0]}</div>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => setShowArchive(true)} className="gap-1 flex-shrink-0 text-xs h-8 px-2 hidden sm:inline-flex" title="View chat history">
+                <Button size="sm" variant="outline" onClick={() => setShowArchive(true)} className="gap-1 flex-shrink-0 text-xs h-8 px-2 hidden sm:inline-flex" title={t('agents_view_history')}>
                   <BarChart2 className="w-3 h-3" />
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => startNewConversation(selectedAgent)} className="gap-1.5 flex-shrink-0 text-xs h-8 px-2.5">
-                  <Plus className="w-3 h-3" /> New
+                  <Plus className="w-3 h-3" /> {t('agents_new_chat')}
                 </Button>
               </div>
 
@@ -590,13 +718,13 @@ export default function AgentsPage() {
               <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4">
                 {currentMessages.length === 0 && (
                   <div className="flex flex-col items-center pt-10 pb-4 px-2 text-center">
-                    <p className="text-muted-foreground text-sm mb-5">Start a conversation with {agent?.label}</p>
+                    <p className="text-muted-foreground text-sm mb-5">{t('agents_start_conversation')} {agent?.label}</p>
                     {conversations[selectedAgent]?.length > 0 && (
                       <button
                         onClick={() => setShowArchive(true)}
                         className="px-4 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all mb-4 sm:hidden"
                       >
-                        View {conversations[selectedAgent].length} saved chat(s)
+                        {t('agents_view_history')} ({conversations[selectedAgent].length})
                       </button>
                     )}
                     <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 w-full max-w-sm sm:max-w-none mb-4">
@@ -616,7 +744,7 @@ export default function AgentsPage() {
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-primary/30 text-xs text-primary/70 hover:border-primary/60 hover:text-primary hover:bg-primary/5 transition-all w-full max-w-sm"
                     >
                       <ImagePlus className="w-4 h-4 flex-shrink-0" />
-                      <span>Upload a chart screenshot for visual analysis</span>
+                      <span>{t('agents_upload_chart')}</span>
                     </button>
                   </div>
                 )}
@@ -695,7 +823,7 @@ export default function AgentsPage() {
                                {msg.tool_calls.map((tc, ti) => (
                                  <div key={ti} className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/50 rounded px-2 py-1 min-w-0">
                                    <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", tc.status === 'completed' ? 'bg-green-400' : tc.status === 'running' ? 'bg-yellow-400 animate-pulse' : 'bg-muted-foreground')} />
-                                   <span className="font-mono truncate">{tc.name || 'tool'}</span>
+                                   <span className="font-mono truncate">{tc.name || t('global_no_data')}</span>
                                    <span className="text-muted-foreground flex-shrink-0">{tc.status}</span>
                                  </div>
                                ))}
@@ -715,7 +843,7 @@ export default function AgentsPage() {
                     </div>
                     <div className="bg-card border border-border rounded-2xl px-4 py-2.5 sm:py-3 flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                      <span className="text-sm text-muted-foreground">Analyzing…</span>
+                      <span className="text-sm text-muted-foreground">{t('agents_analyzing')}</span>
                     </div>
                   </div>
                 )}
@@ -750,7 +878,7 @@ export default function AgentsPage() {
                     size="icon"
                     onClick={() => fileInputRef.current?.click()}
                     className="flex-shrink-0 w-10 h-10 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                    title="Attach chart screenshot"
+                    title={t('agents_upload_chart')}
                   >
                     <ImagePlus className="w-4 h-4" />
                   </Button>
@@ -759,7 +887,7 @@ export default function AgentsPage() {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={pendingImages.length > 0 ? 'Add a note or send images…' : `Ask ${agent?.label}…`}
+                    placeholder={pendingImages.length > 0 ? t('agents_add_note') : `${t('agents_ask')} ${agent?.label}…`}
                     className="flex-1 bg-secondary border-border text-sm h-10"
                     disabled={sending}
                   />

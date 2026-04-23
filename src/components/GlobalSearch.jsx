@@ -2,27 +2,30 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, LayoutDashboard, TrendingUp, Briefcase, Zap, Activity, Bot, Bell, Shield, FileText, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import { cn } from '@/lib/utils';
 
-const SEARCHABLE_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', path: '/', icon: LayoutDashboard, category: 'Navigation' },
-  { id: 'market', label: 'Market Overview', path: '/market', icon: TrendingUp, category: 'Navigation' },
-  { id: 'portfolio', label: 'Portfolio', path: '/portfolio', icon: Briefcase, category: 'Navigation' },
-  { id: 'signals', label: 'AI Signals', path: '/signals', icon: Zap, category: 'Navigation' },
-  { id: 'positions', label: 'Open Positions', path: '/positions', icon: Activity, category: 'Navigation' },
-  { id: 'agents', label: 'AI Agents', path: '/agents', icon: Bot, category: 'Navigation' },
-  { id: 'alerts', label: 'Alerts', path: '/alerts', icon: Bell, category: 'Navigation' },
-  { id: 'risk', label: 'Risk Settings', path: '/risk', icon: Shield, category: 'Navigation' },
-  { id: 'audit', label: 'Audit Log', path: '/audit', icon: FileText, category: 'Navigation' },
-  { id: 'settings', label: 'Settings', path: '/settings', icon: Settings, category: 'Navigation' },
-  { id: 'portfolio-add', label: 'Add Holding', path: '/portfolio', icon: Briefcase, category: 'Actions' },
-  { id: 'position-add', label: 'Add Position', path: '/positions', icon: Activity, category: 'Actions' },
-  { id: 'new-chat', label: 'Start AI Chat', path: '/agents', icon: Bot, category: 'Actions' },
+const getSearchableItems = (t) => [
+  { id: 'dashboard', label: t('nav_dashboard'), path: '/', icon: LayoutDashboard, category: 'Navigation' },
+  { id: 'market', label: t('nav_market'), path: '/market', icon: TrendingUp, category: 'Navigation' },
+  { id: 'portfolio', label: t('nav_portfolio'), path: '/portfolio', icon: Briefcase, category: 'Navigation' },
+  { id: 'signals', label: t('nav_signals'), path: '/signals', icon: Zap, category: 'Navigation' },
+  { id: 'positions', label: t('nav_positions'), path: '/positions', icon: Activity, category: 'Navigation' },
+  { id: 'agents', label: t('nav_agents'), path: '/agents', icon: Bot, category: 'Navigation' },
+  { id: 'alerts', label: t('nav_alerts'), path: '/alerts', icon: Bell, category: 'Navigation' },
+  { id: 'risk', label: t('nav_risk'), path: '/risk', icon: Shield, category: 'Navigation' },
+  { id: 'audit', label: t('nav_audit'), path: '/audit', icon: FileText, category: 'Navigation' },
+  { id: 'settings', label: t('nav_settings'), path: '/settings', icon: Settings, category: 'Navigation' },
+  { id: 'portfolio-add', label: t('portfolio_add_holding'), path: '/portfolio', icon: Briefcase, category: 'Actions' },
+  { id: 'position-add', label: t('positions_add_position'), path: '/positions', icon: Activity, category: 'Actions' },
+  { id: 'new-chat', label: t('agents_new_chat'), path: '/agents', icon: Bot, category: 'Actions' },
 ];
 
 export default function GlobalSearch({ isOpen, onClose }) {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  const { t } = useAppPreferences();
+  const SEARCHABLE_ITEMS = getSearchableItems(t);
 
   const results = useMemo(() => {
     if (!search.trim()) return [];
@@ -31,7 +34,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
       item.label.toLowerCase().includes(query) ||
       item.category.toLowerCase().includes(query)
     ).slice(0, 8);
-  }, [search]);
+  }, [search, SEARCHABLE_ITEMS]);
 
   const handleSelect = (path) => {
     navigate(path);
@@ -58,7 +61,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
               <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               <Input
                 autoFocus
-                placeholder="Search pages, actions, settings..."
+                placeholder={t('global_search_placeholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="flex-1 border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
@@ -74,11 +77,11 @@ export default function GlobalSearch({ isOpen, onClose }) {
             {/* Results */}
             {search.trim() === '' ? (
               <div className="px-4 py-8 text-center text-muted-foreground text-sm">
-                Start typing to search pages, actions, and settings
+                {t('global_search_placeholder')}
               </div>
             ) : results.length === 0 ? (
               <div className="px-4 py-8 text-center text-muted-foreground text-sm">
-                No results found for "{search}"
+                {t('global_search_no_results')} "{search}"
               </div>
             ) : (
               <div className="divide-y divide-border/50 max-h-96 overflow-y-auto">
@@ -103,7 +106,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
 
             {/* Footer hint */}
             <div className="px-4 py-2 border-t border-border/50 bg-secondary/30 text-xs text-muted-foreground text-center">
-              Press ESC to close
+              {t('global_close')}
             </div>
           </div>
         </div>

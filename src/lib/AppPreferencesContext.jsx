@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { translations } from './translations';
 
 const AppPreferencesContext = createContext();
 
@@ -74,6 +75,10 @@ export const AppPreferencesProvider = ({ children }) => {
     return `${symbol}${convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  const t = (key, defaultValue = key) => {
+    return translations[language]?.[key] || translations.en[key] || defaultValue;
+  };
+
   return (
     <AppPreferencesContext.Provider value={{
       language,
@@ -87,6 +92,7 @@ export const AppPreferencesProvider = ({ children }) => {
       formatCurrency,
       applyPreferences,
       hasUnsavedChanges,
+      t,
     }}>
       {children}
     </AppPreferencesContext.Provider>

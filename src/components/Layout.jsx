@@ -6,25 +6,28 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import GlobalSearch from '@/components/GlobalSearch';
 
-const navItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/market', label: 'Market', icon: TrendingUp },
-  { path: '/portfolio', label: 'Portfolio', icon: Briefcase },
-  { path: '/signals', label: 'AI Signals', icon: Zap },
-  { path: '/positions', label: 'Positions', icon: Activity },
-  { path: '/agents', label: 'AI Agents', icon: Bot },
-  { path: '/alerts', label: 'Alerts', icon: Bell },
-  { path: '/risk', label: 'Risk Settings', icon: Shield },
-  { path: '/audit', label: 'Audit Log', icon: Activity },
-  { path: '/settings', label: 'Settings', icon: Settings },
+const getNavItems = (t) => [
+  { path: '/', label: t('nav_dashboard'), icon: LayoutDashboard },
+  { path: '/market', label: t('nav_market'), icon: TrendingUp },
+  { path: '/portfolio', label: t('nav_portfolio'), icon: Briefcase },
+  { path: '/signals', label: t('nav_signals'), icon: Zap },
+  { path: '/positions', label: t('nav_positions'), icon: Activity },
+  { path: '/agents', label: t('nav_agents'), icon: Bot },
+  { path: '/alerts', label: t('nav_alerts'), icon: Bell },
+  { path: '/risk', label: t('nav_risk'), icon: Shield },
+  { path: '/audit', label: t('nav_audit'), icon: Activity },
+  { path: '/settings', label: t('nav_settings'), icon: Settings },
 ];
 
 export default function Layout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { t } = useAppPreferences();
+  const navItems = getNavItems(t);
 
   // Global keyboard shortcut for search (Cmd+K or Ctrl+K)
   useEffect(() => {
@@ -134,7 +137,7 @@ export default function Layout() {
             size="icon"
             onClick={() => setSearchOpen(true)}
             className="flex text-muted-foreground hover:text-foreground"
-            title="Search (Cmd+K)"
+            title={t('global_search')}
           >
             <Search className="w-4 h-4" />
           </Button>
@@ -142,7 +145,7 @@ export default function Layout() {
           {/* Capital Protection badge — text on sm+, icon-only on mobile */}
           <Badge variant="outline" className="hidden sm:inline-flex items-center gap-1 text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/5 px-2.5 py-1">
             <Shield className="w-3 h-3" />
-            Capital Protection ON
+            {t('dashboard_capital_protection')}
           </Badge>
           <Badge variant="outline" className="sm:hidden inline-flex items-center justify-center w-8 h-8 rounded-md text-yellow-400 border-yellow-400/30 bg-yellow-400/5 p-0">
             <Shield className="w-3.5 h-3.5" />
