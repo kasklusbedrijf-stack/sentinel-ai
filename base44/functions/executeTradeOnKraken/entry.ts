@@ -105,26 +105,125 @@ Deno.serve(async (req) => {
       );
     }
 
-    // In production: Connect to Kraken API using OAuth connector or API key
-    // For now, simulate order creation
+    // Get Kraken API credentials from environment
+    const krakenApiKey = Deno.env.get('KRAKEN_API_KEY');
+    const krakenApiSecret = Deno.env.get('KRAKEN_API_SECRET');
+
+    if (!krakenApiKey || !krakenApiSecret) {
+      return Response.json(
+        { error: 'Kraken API credentials not configured' },
+        { status: 500 }
+      );
+    }
+
+    // Prepare Kraken order request
+    const krakenPair = `${trade.asset_symbol.toUpperCase()}USD`;
+    const orderType = trade.direction === 'buy' ? 'buy' : 'sell';
+    const nonce = Date.now().toString();
+    
+    // Calculate position size (simplified: use 10% of portfolio per trade)
+    const quantity = parseFloat(trade.position_size_pct || 1) / 100;
+
+    // Build Kraken API request
+    const krakenPayload = new URLSearchParams({
+      nonce: nonce,
+      ordertype: 'limit',
+      type: orderType,
+      pair: krakenPair,
+      price: trade.entry_price.toString(),
+      volume: quantity.toString(),
+      starttm: '0',
+      expiretm: '0',
+      closetm: '0',
+      deadline: '',
+      userref: trade_approval_id,
+      validate: 'false', // Set to true first to validate without submitting
+    });
+
+    // Sign request with HMAC-SHA512
+    const apiPath = '/0/private/AddOrder';
+    const postData = krakenPayload.toString();
+    
+    const encoder = new TextEncoder();
+    const pathHash = await crypto.subtle.digest('SHA-256', encoder.encode(postData));
+    const messageHash = await crypto.subtle.digest(
+      'SHA-256',
+      encoder.encode(apiPath + postData)
+    );
+
+    // Create HMAC signature
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(krakenApiSecret),
+      { name: 'HMAC', hash: 'SHA-512' },
+      false,
+      ['sign']
+    );
+
+    const signature = await crypto.subtle.sign('HMAC', key, messageHash);
+    const signatureHex = Array.from(new Uint8Array(signature))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    // Call Kraken API
+    let krakenResponse;
+    let krakenOrderId;
+    try {
+      const response = await fetch('https://api.kraken.com/0/private/AddOrder', {
+        method: 'POST',
+        headers: {
+          'API-Key': krakenApiKey,
+          'API-Sign': signatureHex,
+        },
+        body: postData,
+      });
+
+      krakenResponse = await response.json();
+
+      if (!response.ok || krakenResponse.error?.length > 0) {
+        const errorMsg = krakenResponse.error?.join(', ') || 'Unknown Kraken API error';
+        await base44.asServiceRole.entities.TradeApproval.update(trade_approval_id, {
+          status: 'failed',
+          rejection_reason: `Kraken API error: ${errorMsg}`,
+        });
+        return Response.json(
+          { success: false, error: `Kraken rejected order: ${errorMsg}` },
+          { status: 400 }
+        );
+      }
+
+      // Extract order ID from Kraken response
+      if (krakenResponse.result?.txid?.length > 0) {
+        krakenOrderId = krakenResponse.result.txid[0];
+      }
+    } catch (krakenError) {
+      await base44.asServiceRole.entities.TradeApproval.update(trade_approval_id, {
+        status: 'failed',
+        rejection_reason: `Kraken connection error: ${krakenError.message}`,
+      });
+      return Response.json(
+        { success: false, error: `Failed to reach Kraken: ${krakenError.message}` },
+        { status: 500 }
+      );
+    }
+
+    // Create order record in database
     const order = await base44.asServiceRole.entities.ExchangeOrder.create({
       trade_approval_id: trade_approval_id,
       asset_symbol: trade.asset_symbol,
       direction: trade.direction,
       order_type: 'limit',
       entry_price: trade.entry_price,
-      quantity: 0.1, // In production: calculate from position size
+      quantity: quantity,
       stop_loss: trade.stop_loss,
       tp1: trade.tp1,
       tp2: trade.tp2,
       tp3: trade.tp3,
       exchange: 'kraken',
+      exchange_order_id: krakenOrderId || 'pending',
       status: 'sent',
       sent_at: new Date().toISOString(),
-      raw_response: JSON.stringify({
-        simulated: true,
-        note: 'Production: Call Kraken REST API with user OAuth token',
-      }),
+      raw_response: JSON.stringify(krakenResponse.result || krakenResponse),
     });
 
     // Update trade approval status
