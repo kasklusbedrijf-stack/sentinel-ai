@@ -7,6 +7,7 @@ import RecentAlerts from '@/components/dashboard/RecentAlerts';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SignalBadge, PnlText } from '@/components/ui/signal-badge';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 
 export default function Dashboard() {
   const [portfolio, setPortfolio] = useState([]);
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const [alerts, setAlerts] = useState([]);
   const [riskSettings, setRiskSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { formatCurrency } = useAppPreferences();
 
   useEffect(() => {
     async function load() {
@@ -70,7 +72,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatsCard
           title="Portfolio Value"
-          value={`$${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          value={formatCurrency(totalValue)}
           subtitle="Total holdings"
           icon={DollarSign}
           accent={true}
@@ -79,7 +81,7 @@ export default function Dashboard() {
         />
         <StatsCard
           title="Unrealized PnL"
-          value={`${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`}
+          value={`${totalPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalPnl))}`}
           subtitle={`${totalPnlPct.toFixed(2)}% overall`}
           icon={TrendingUp}
           trendValue={totalPnlPct}
@@ -133,8 +135,8 @@ export default function Dashboard() {
             {positions.slice(0, 5).map(pos => (
               <div key={pos.id} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
                 <div>
-                  <p className="font-semibold text-sm text-foreground">{pos.asset_symbol}</p>
-                  <p className="text-xs text-muted-foreground font-mono">${pos.entry_price?.toFixed(2)} → ${pos.current_price?.toFixed(2)}</p>
+                   <p className="font-semibold text-sm text-foreground">{pos.asset_symbol}</p>
+                   <p className="text-xs text-muted-foreground font-mono">{formatCurrency(pos.entry_price)} → {formatCurrency(pos.current_price)}</p>
                 </div>
                 <div className="text-right">
                   <PnlText value={pos.unrealized_pnl_pct} suffix="%" />
@@ -159,8 +161,8 @@ export default function Dashboard() {
                 {positions.slice(0, 5).map(pos => (
                   <tr key={pos.id} className="hover:bg-muted/30 transition-colors">
                     <td className="py-2.5 font-semibold text-foreground">{pos.asset_symbol}</td>
-                    <td className="py-2.5 text-right font-mono text-muted-foreground text-xs">${pos.entry_price?.toFixed(2)}</td>
-                    <td className="py-2.5 text-right font-mono text-xs">${pos.current_price?.toFixed(2)}</td>
+                     <td className="py-2.5 text-right font-mono text-muted-foreground text-xs">{formatCurrency(pos.entry_price)}</td>
+                     <td className="py-2.5 text-right font-mono text-xs">{formatCurrency(pos.current_price)}</td>
                     <td className="py-2.5 text-right"><PnlText value={pos.unrealized_pnl_pct} suffix="%" /></td>
                     <td className="py-2.5 text-right text-xs text-muted-foreground font-mono">{pos.risk_pct?.toFixed(1)}%</td>
                   </tr>
@@ -191,10 +193,10 @@ export default function Dashboard() {
                   <div className="text-xs text-muted-foreground truncate">{asset.quantity} units</div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="text-sm font-mono font-semibold text-foreground">
-                    ${asset.current_value?.toFixed(2)}
-                  </div>
-                  <PnlText value={asset.unrealized_pnl_pct} suffix="%" />
+                   <div className="text-sm font-mono font-semibold text-foreground">
+                     {formatCurrency(asset.current_value)}
+                   </div>
+                   <PnlText value={asset.unrealized_pnl_pct} suffix="%" />
                 </div>
                 <div className="text-xs text-muted-foreground font-mono w-10 text-right flex-shrink-0 hidden sm:block">
                   {asset.allocation_pct?.toFixed(1)}%

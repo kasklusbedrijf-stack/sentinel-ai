@@ -5,11 +5,13 @@ import { Plus, Trash2, DollarSign, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 
 export default function Portfolio() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ asset_symbol: '', asset_name: '', quantity: '', avg_buy_price: '', category: '' });
   const queryClient = useQueryClient();
+  const { formatCurrency } = useAppPreferences();
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['portfolio'],
@@ -45,9 +47,9 @@ export default function Portfolio() {
       {/* Summary Row */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Total Value', value: `$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: DollarSign },
-          { label: 'Unrealized PnL', value: `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`, icon: TrendingUp, positive: totalPnl >= 0 },
-          { label: 'Realized PnL', value: `${totalRealized >= 0 ? '+' : ''}$${totalRealized.toFixed(2)}`, icon: TrendingUp, positive: totalRealized >= 0 },
+          { label: 'Total Value', value: formatCurrency(totalValue), icon: DollarSign },
+          { label: 'Unrealized PnL', value: `${totalPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalPnl))}`, icon: TrendingUp, positive: totalPnl >= 0 },
+          { label: 'Realized PnL', value: `${totalRealized >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalRealized))}`, icon: TrendingUp, positive: totalRealized >= 0 },
         ].map((s) => (
           <div key={s.label} className="bg-card border border-border rounded-xl p-3 sm:p-5">
             <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">{s.label}</p>
@@ -121,7 +123,7 @@ export default function Portfolio() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono font-semibold text-foreground">${a.current_value?.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                    <p className="font-mono font-semibold text-foreground">{formatCurrency(a.current_value)}</p>
                     <p className="text-xs text-muted-foreground">{a.allocation_pct?.toFixed(1)}% alloc.</p>
                   </div>
                 </div>
@@ -131,12 +133,12 @@ export default function Portfolio() {
                     <p className="font-mono font-semibold text-foreground">{a.quantity}</p>
                   </div>
                   <div className="bg-secondary/50 rounded-lg p-2 text-center">
-                    <p className="text-muted-foreground mb-0.5">Avg Buy</p>
-                    <p className="font-mono font-semibold text-foreground">${a.avg_buy_price?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                   <p className="text-muted-foreground mb-0.5">Avg Buy</p>
+                   <p className="font-mono font-semibold text-foreground">{formatCurrency(a.avg_buy_price)}</p>
                   </div>
                   <div className="bg-secondary/50 rounded-lg p-2 text-center">
-                    <p className="text-muted-foreground mb-0.5">Current</p>
-                    <p className="font-mono font-semibold text-foreground">${a.current_price?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                   <p className="text-muted-foreground mb-0.5">Current</p>
+                   <p className="font-mono font-semibold text-foreground">{formatCurrency(a.current_price)}</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
@@ -145,7 +147,7 @@ export default function Portfolio() {
                       <p className="text-xs text-muted-foreground">Unrealized PnL</p>
                       <div className="flex items-center gap-1">
                         <PriceChange value={a.unrealized_pnl_pct} showIcon={false} />
-                        <span className="text-xs text-muted-foreground">(${a.unrealized_pnl?.toFixed(2)})</span>
+                        <span className="text-xs text-muted-foreground">({formatCurrency(a.unrealized_pnl)})</span>
                       </div>
                     </div>
                     {a.realized_pnl !== undefined && (
@@ -184,18 +186,18 @@ export default function Portfolio() {
                         <p className="text-xs text-muted-foreground">{a.asset_name}</p>
                       </td>
                       <td className="px-4 py-3 text-right font-mono text-foreground">{a.quantity}</td>
-                      <td className="px-4 py-3 text-right font-mono text-foreground">${a.avg_buy_price?.toLocaleString(undefined, { maximumFractionDigits: 6 })}</td>
-                      <td className="px-4 py-3 text-right font-mono text-foreground">${a.current_price?.toLocaleString(undefined, { maximumFractionDigits: 6 })}</td>
-                      <td className="px-4 py-3 text-right font-mono font-semibold text-foreground">${a.current_value?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+                      <td className="px-4 py-3 text-right font-mono text-foreground">{formatCurrency(a.avg_buy_price)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-foreground">{formatCurrency(a.current_price)}</td>
+                      <td className="px-4 py-3 text-right font-mono font-semibold text-foreground">{formatCurrency(a.current_value)}</td>
                       <td className="px-4 py-3 text-right text-muted-foreground">{a.allocation_pct?.toFixed(1)}%</td>
                       <td className="px-4 py-3 text-right">
                         <PriceChange value={a.unrealized_pnl_pct} showIcon={false} />
-                        <p className="text-xs text-muted-foreground">${a.unrealized_pnl?.toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground">{formatCurrency(a.unrealized_pnl)}</p>
                       </td>
                       <td className="px-4 py-3 text-right">
                         {a.realized_pnl !== undefined ? (
                           <span className={cn('text-sm font-medium', a.realized_pnl >= 0 ? 'text-green-400' : 'text-destructive')}>
-                            {a.realized_pnl >= 0 ? '+' : ''}${a.realized_pnl?.toFixed(2)}
+                            {a.realized_pnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(a.realized_pnl)).slice(1)}
                           </span>
                         ) : <span className="text-muted-foreground">—</span>}
                       </td>

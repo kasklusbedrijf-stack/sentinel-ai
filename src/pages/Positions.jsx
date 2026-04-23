@@ -5,11 +5,13 @@ import { Plus, X, Shield, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 
 export default function Positions() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ asset_symbol: '', side: 'long', entry_price: '', quantity: '', stop_loss: '', tp1: '', tp2: '', tp3: '', risk_pct: '' });
   const queryClient = useQueryClient();
+  const { formatCurrency } = useAppPreferences();
 
   const { data: positions = [], isLoading } = useQuery({
     queryKey: ['positions'],
@@ -118,8 +120,8 @@ export default function Positions() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <PriceChange value={pnl} />
-                    <span className="text-sm font-mono text-foreground">${p.position_value?.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                     <PriceChange value={pnl} />
+                     <span className="text-sm font-mono text-foreground">{formatCurrency(p.position_value)}</span>
                     <button onClick={() => updatePosition.mutate({ id: p.id, data: { status: 'closed' } })}
                       className="text-muted-foreground hover:text-destructive transition-colors ml-2">
                       <X className="w-4 h-4" />
@@ -128,33 +130,33 @@ export default function Positions() {
                 </div>
 
                 {/* Price row */}
-                <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
-                  <div className="text-center p-2 bg-secondary/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Entry</p>
-                    <p className="font-mono font-semibold text-foreground">${p.entry_price?.toLocaleString()}</p>
-                  </div>
-                  <div className="text-center p-2 bg-secondary/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Current</p>
-                    <p className="font-mono font-semibold text-foreground">${p.current_price?.toLocaleString()}</p>
-                  </div>
-                  <div className="text-center p-2 bg-secondary/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Risk %</p>
-                    <p className={cn('font-mono font-semibold', (p.risk_pct || 0) > 3 ? 'text-destructive' : 'text-warning')}>{p.risk_pct?.toFixed(1)}%</p>
-                  </div>
-                </div>
+                 <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+                   <div className="text-center p-2 bg-secondary/50 rounded-lg">
+                     <p className="text-xs text-muted-foreground">Entry</p>
+                     <p className="font-mono font-semibold text-foreground">{formatCurrency(p.entry_price)}</p>
+                   </div>
+                   <div className="text-center p-2 bg-secondary/50 rounded-lg">
+                     <p className="text-xs text-muted-foreground">Current</p>
+                     <p className="font-mono font-semibold text-foreground">{formatCurrency(p.current_price)}</p>
+                   </div>
+                   <div className="text-center p-2 bg-secondary/50 rounded-lg">
+                     <p className="text-xs text-muted-foreground">Risk %</p>
+                     <p className={cn('font-mono font-semibold', (p.risk_pct || 0) > 3 ? 'text-destructive' : 'text-warning')}>{p.risk_pct?.toFixed(1)}%</p>
+                   </div>
+                 </div>
 
                 {/* SL / TP row */}
-                <div className="flex items-center gap-3 flex-wrap">
-                  {p.stop_loss && (
-                    <div className="flex items-center gap-1.5 text-xs bg-destructive/10 text-destructive px-3 py-1.5 rounded-lg">
-                      <Shield className="w-3 h-3" /> SL: ${p.stop_loss?.toLocaleString()}
-                    </div>
-                  )}
-                  {[p.tp1, p.tp2, p.tp3].filter(Boolean).map((tp, i) => (
-                    <div key={i} className="flex items-center gap-1.5 text-xs bg-success/10 text-success px-3 py-1.5 rounded-lg">
-                      <Target className="w-3 h-3" /> TP{i + 1}: ${tp?.toLocaleString()}
-                    </div>
-                  ))}
+                 <div className="flex items-center gap-3 flex-wrap">
+                   {p.stop_loss && (
+                     <div className="flex items-center gap-1.5 text-xs bg-destructive/10 text-destructive px-3 py-1.5 rounded-lg">
+                       <Shield className="w-3 h-3" /> SL: {formatCurrency(p.stop_loss)}
+                     </div>
+                   )}
+                   {[p.tp1, p.tp2, p.tp3].filter(Boolean).map((tp, i) => (
+                     <div key={i} className="flex items-center gap-1.5 text-xs bg-success/10 text-success px-3 py-1.5 rounded-lg">
+                       <Target className="w-3 h-3" /> TP{i + 1}: {formatCurrency(tp)}
+                     </div>
+                   ))}
                   {p.trailing_stop_active && (
                     <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded">Trailing Stop</span>
                   )}

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 
 const signalColors = {
   BUY: 'text-green-400 bg-green-400/10 border-green-400/20',
@@ -29,6 +30,7 @@ export default function Signals() {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [expanded, setExpanded] = useState(null);
+  const { formatCurrency } = useAppPreferences();
 
   useEffect(() => {
     base44.entities.AISignal.list('-created_date', 100).then(d => { setSignals(d); setLoading(false); });
@@ -157,22 +159,22 @@ export default function Signals() {
                 </div>
 
                 {/* Trade levels */}
-                {signal.suggested_entry && (
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
-                    {[
-                      ['Entry', signal.suggested_entry, 'text-foreground'],
-                      ['Stop Loss', signal.suggested_stop_loss, 'text-red-400'],
-                      ['TP1', signal.suggested_tp1, 'text-green-400'],
-                      ['TP2', signal.suggested_tp2, 'text-green-400'],
-                      ['TP3', signal.suggested_tp3, 'text-green-400'],
-                    ].map(([l, v, c]) => v && (
-                      <div key={l} className="bg-card rounded-lg p-2.5 text-center">
-                        <div className="text-muted-foreground mb-1">{l}</div>
-                        <div className={cn("font-mono font-semibold", c)}>${v.toLocaleString('en', { maximumFractionDigits: 4 })}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                 {signal.suggested_entry && (
+                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+                     {[
+                       ['Entry', signal.suggested_entry, 'text-foreground'],
+                       ['Stop Loss', signal.suggested_stop_loss, 'text-red-400'],
+                       ['TP1', signal.suggested_tp1, 'text-green-400'],
+                       ['TP2', signal.suggested_tp2, 'text-green-400'],
+                       ['TP3', signal.suggested_tp3, 'text-green-400'],
+                     ].map(([l, v, c]) => v && (
+                       <div key={l} className="bg-card rounded-lg p-2.5 text-center">
+                         <div className="text-muted-foreground mb-1">{l}</div>
+                         <div className={cn("font-mono font-semibold", c)}>{formatCurrency(v)}</div>
+                       </div>
+                     ))}
+                   </div>
+                 )}
 
                 {/* RR ratio */}
                 {signal.reward_risk_ratio && (
