@@ -133,7 +133,7 @@ export default function Layout() {
             variant="ghost"
             size="icon"
             onClick={() => setSearchOpen(true)}
-            className="hidden sm:flex text-muted-foreground hover:text-foreground"
+            className="flex text-muted-foreground hover:text-foreground"
             title="Search (Cmd+K)"
           >
             <Search className="w-4 h-4" />
