@@ -3,6 +3,621 @@
 // Structure: { [languageCode]: { [translationKey]: translatedString } }
 
 export const translations = {
+  de: {
+    // Navigation
+    nav_dashboard: 'Dashboard',
+    nav_market: 'Markt',
+    nav_portfolio: 'Portfolio',
+    nav_signals: 'Signale',
+    nav_positions: 'Positionen',
+    nav_agents: 'KI-Agenten',
+    nav_alerts: 'Benachrichtigungen',
+    nav_risk: 'Risiko',
+    nav_audit: 'Audit-Log',
+    nav_settings: 'Einstellungen',
+
+    // Dashboard
+    dashboard_title: 'Dashboard',
+    dashboard_portfolio_value: 'Portefeuille-Wert',
+    dashboard_unrealized_pnl: 'Nicht realisierter Gewinn/Verlust',
+    dashboard_open_positions: 'Offene Positionen',
+    dashboard_active_signals: 'Aktive Signale',
+    dashboard_capital_protection: 'Kapitalschutz',
+    dashboard_trading_mode: 'Handelsmodus',
+
+    // Portfolio
+    portfolio_total_value: 'Gesamtwert',
+    portfolio_unrealized_pnl: 'Nicht realisierter Gewinn/Verlust',
+    portfolio_realized_pnl: 'Realisierter Gewinn/Verlust',
+    portfolio_add_holding: 'Bestand hinzufügen',
+    portfolio_holdings: 'Bestände',
+    portfolio_allocation: 'Zuteilung',
+
+    // Positions
+    positions_open: 'Offen',
+    positions_closed: 'Geschlossen',
+    positions_add_position: 'Position hinzufügen',
+    positions_entry: 'Einstieg',
+    positions_current_price: 'Aktueller Preis',
+    positions_stop_loss: 'Stoppverlust',
+    positions_take_profit: 'Gewinnmitnahme',
+
+    // Signals
+    signals_title: 'KI-Signale',
+    signals_confidence: 'Konfidenz',
+    signals_risk_score: 'Risikoscore',
+    signals_entry: 'Einstieg',
+    signals_stop_loss: 'Stoppverlust',
+    signals_take_profit: 'Gewinnmitnahme',
+
+    // Alerts
+    alerts_title: 'Benachrichtigungen',
+    alerts_unread: 'Ungelesen',
+    alerts_mark_read: 'Als gelesen markieren',
+    alerts_no_alerts: 'Keine Benachrichtigungen',
+
+    // Market
+    market_title: 'Marktübersicht',
+    market_top_gainers: 'Top Gewinner',
+    market_top_losers: 'Top Verlierer',
+    market_search: 'Nach Assets suchen',
+    market_filter_category: 'Nach Kategorie filtern',
+
+    // Risk Settings
+    risk_settings: 'Risikoeinstellungen',
+    risk_max_per_trade: 'Max. Risiko pro Trade',
+    risk_max_daily_loss: 'Max. Täglicher Verlust',
+    risk_max_open_positions: 'Max. Offene Positionen',
+    risk_block_memecoins: 'Memcoins blockieren',
+    risk_emergency_stop: 'Notfall-Stopp',
+
+    // Audit Log
+    audit_log: 'Audit-Log',
+    audit_action: 'Aktion',
+    audit_details: 'Details',
+    audit_timestamp: 'Zeitstempel',
+
+    // Settings
+    settings_title: 'Einstellungen',
+    settings_account_settings: 'Konto- und Anwendungseinstellungen',
+    settings_profile: 'Profil',
+    settings_name: 'Name',
+    settings_email: 'E-Mail',
+    settings_localization: 'Lokalisierung',
+    settings_language: 'Sprache',
+    settings_currency: 'Währung',
+    settings_language_help: 'Sprache der Benutzeroberfläche',
+    settings_currency_help: 'Anwendbar auf alle Portefeuille- und Preiswerte',
+    settings_unsaved_changes: 'Ungespeicherte Änderungen',
+    settings_unsaved_help: 'Ihre Sprach- und Währungseinstellungen wurden noch nicht gespeichert.',
+    settings_exchange_connection: 'Börsenverbindung',
+    settings_exchange_coming: 'Die Integration der Börsen-API wird in einer zukünftigen Aktualisierung verfügbar sein.',
+    settings_exchange_api: 'Verbinden Sie Ihre Börsen-API-Schlüssel (schreibgeschützt oder Handelsberechtigungen)',
+    settings_exchange_sync: 'Portfeuille-Guthaben automatisch synchronisieren',
+    settings_exchange_trade: 'Trades über die Plattform ausführen',
+    settings_exchange_test: 'Verbindung vor dem Live-Betrieb testen',
+    settings_security_notice: 'Sicherheitshinweis',
+    settings_security_keys: 'Wir empfehlen, zunächst schreibgeschützte API-Schlüssel zu verwenden. Aktivieren Sie niemals Abhebungsberechtigungen. Alle API-Schlüssel werden verschlüsselt und sicher gespeichert.',
+    settings_security: 'Sicherheit',
+    settings_2fa_coming: 'Die Authentifizierung wird von der Plattform verwaltet. Zusätzliche Sicherheitsfunktionen wie 2FA werden in zukünftigen Updates verfügbar sein.',
+    settings_logout: 'Abmelden',
+    settings_save_changes: 'Änderungen speichern',
+    settings_cancel: 'Abbrechen',
+
+    // Agents
+    agents_title: 'KI-Agenten',
+    agents_chat_with: 'Chatten Sie mit spezialisierten Agenten',
+    agents_new_chat: 'Neuer Chat',
+    agents_view_history: 'Verlauf anzeigen',
+    agents_no_chats: 'Noch keine gespeicherten Chats',
+    agents_start_conversation: 'Starten Sie ein Gespräch mit',
+    agents_upload_chart: 'Laden Sie einen Chart-Screenshot hoch',
+    agents_analyzing: 'Analysieren…',
+    agents_ask: 'Fragen Sie',
+    agents_add_note: 'Notiz hinzufügen oder Bilder senden…',
+    agents_chat_history: 'Chat-Verlauf',
+
+    // Global
+    global_search: 'Globale Suche',
+    global_search_placeholder: 'Zum Durchsuchen von Seiten, Aktionen und Einstellungen tippen',
+    global_search_no_results: 'Keine Ergebnisse gefunden für',
+    global_close: 'Drücken Sie ESC zum Schließen',
+    global_save: 'Speichern',
+    global_cancel: 'Abbrechen',
+    global_no_data: 'Tool',
+  },
+  fr: {
+    // Navigation
+    nav_dashboard: 'Tableau de bord',
+    nav_market: 'Marché',
+    nav_portfolio: 'Portefeuille',
+    nav_signals: 'Signaux',
+    nav_positions: 'Positions',
+    nav_agents: 'Agents IA',
+    nav_alerts: 'Alertes',
+    nav_risk: 'Risque',
+    nav_audit: 'Journal d\'audit',
+    nav_settings: 'Paramètres',
+
+    // Dashboard
+    dashboard_title: 'Tableau de bord',
+    dashboard_portfolio_value: 'Valeur du portefeuille',
+    dashboard_unrealized_pnl: 'Profit/Perte non réalisé',
+    dashboard_open_positions: 'Positions ouvertes',
+    dashboard_active_signals: 'Signaux actifs',
+    dashboard_capital_protection: 'Protection du capital',
+    dashboard_trading_mode: 'Mode de trading',
+
+    // Portfolio
+    portfolio_total_value: 'Valeur totale',
+    portfolio_unrealized_pnl: 'Profit/Perte non réalisé',
+    portfolio_realized_pnl: 'Profit/Perte réalisé',
+    portfolio_add_holding: 'Ajouter un actif',
+    portfolio_holdings: 'Actifs détenus',
+    portfolio_allocation: 'Allocation',
+
+    // Positions
+    positions_open: 'Ouvert',
+    positions_closed: 'Fermé',
+    positions_add_position: 'Ajouter une position',
+    positions_entry: 'Entrée',
+    positions_current_price: 'Prix actuel',
+    positions_stop_loss: 'Stop loss',
+    positions_take_profit: 'Take profit',
+
+    // Signals
+    signals_title: 'Signaux IA',
+    signals_confidence: 'Confiance',
+    signals_risk_score: 'Score de risque',
+    signals_entry: 'Entrée',
+    signals_stop_loss: 'Stop loss',
+    signals_take_profit: 'Take profit',
+
+    // Alerts
+    alerts_title: 'Alertes',
+    alerts_unread: 'Non lu',
+    alerts_mark_read: 'Marquer comme lu',
+    alerts_no_alerts: 'Aucune alerte',
+
+    // Market
+    market_title: 'Aperçu du marché',
+    market_top_gainers: 'Meilleurs gains',
+    market_top_losers: 'Plus grandes pertes',
+    market_search: 'Rechercher des actifs',
+    market_filter_category: 'Filtrer par catégorie',
+
+    // Risk Settings
+    risk_settings: 'Paramètres de risque',
+    risk_max_per_trade: 'Risque max par trade',
+    risk_max_daily_loss: 'Perte quotidienne max',
+    risk_max_open_positions: 'Positions ouvertes max',
+    risk_block_memecoins: 'Bloquer les memecoins',
+    risk_emergency_stop: 'Arrêt d\'urgence',
+
+    // Audit Log
+    audit_log: 'Journal d\'audit',
+    audit_action: 'Action',
+    audit_details: 'Détails',
+    audit_timestamp: 'Horodatage',
+
+    // Settings
+    settings_title: 'Paramètres',
+    settings_account_settings: 'Paramètres du compte et de l\'application',
+    settings_profile: 'Profil',
+    settings_name: 'Nom',
+    settings_email: 'E-mail',
+    settings_localization: 'Localisation',
+    settings_language: 'Langue',
+    settings_currency: 'Devise',
+    settings_language_help: 'Langue de l\'interface',
+    settings_currency_help: 'Appliqué à toutes les valeurs du portefeuille et des prix',
+    settings_unsaved_changes: 'Modifications non enregistrées',
+    settings_unsaved_help: 'Vos préférences de langue et de devise n\'ont pas été enregistrées.',
+    settings_exchange_connection: 'Connexion à la bourse',
+    settings_exchange_coming: 'L\'intégration de l\'API de la bourse sera disponible dans une mise à jour ultérieure.',
+    settings_exchange_api: 'Connectez vos clés API de bourse (lecture seule ou autorisations de trading)',
+    settings_exchange_sync: 'Synchroniser automatiquement les soldes du portefeuille',
+    settings_exchange_trade: 'Exécuter des trades via la plateforme',
+    settings_exchange_test: 'Tester la connexion avant de passer en direct',
+    settings_security_notice: 'Avis de sécurité',
+    settings_security_keys: 'Nous recommandons d\'utiliser d\'abord des clés API en lecture seule. N\'activez jamais les autorisations de retrait. Tous les clés API seront chiffrées et stockées en toute sécurité.',
+    settings_security: 'Sécurité',
+    settings_2fa_coming: 'L\'authentification est gérée par la plateforme. Des fonctionnalités de sécurité supplémentaires comme 2FA seront disponibles dans les mises à jour futures.',
+    settings_logout: 'Se déconnecter',
+    settings_save_changes: 'Enregistrer les modifications',
+    settings_cancel: 'Annuler',
+
+    // Agents
+    agents_title: 'Agents IA',
+    agents_chat_with: 'Discutez avec des agents spécialisés',
+    agents_new_chat: 'Nouveau chat',
+    agents_view_history: 'Afficher l\'historique',
+    agents_no_chats: 'Aucun chat enregistré',
+    agents_start_conversation: 'Démarrez une conversation avec',
+    agents_upload_chart: 'Téléchargez une capture d\'écran de graphique',
+    agents_analyzing: 'Analyse en cours…',
+    agents_ask: 'Demandez à',
+    agents_add_note: 'Ajouter une note ou envoyer des images…',
+    agents_chat_history: 'Historique des chats',
+
+    // Global
+    global_search: 'Recherche globale',
+    global_search_placeholder: 'Commencez à taper pour rechercher des pages, des actions et des paramètres',
+    global_search_no_results: 'Aucun résultat trouvé pour',
+    global_close: 'Appuyez sur ESC pour fermer',
+    global_save: 'Enregistrer',
+    global_cancel: 'Annuler',
+    global_no_data: 'Outil',
+  },
+  es: {
+    // Navigation
+    nav_dashboard: 'Panel de control',
+    nav_market: 'Mercado',
+    nav_portfolio: 'Cartera',
+    nav_signals: 'Señales',
+    nav_positions: 'Posiciones',
+    nav_agents: 'Agentes IA',
+    nav_alerts: 'Alertas',
+    nav_risk: 'Riesgo',
+    nav_audit: 'Registro de auditoría',
+    nav_settings: 'Configuración',
+
+    // Dashboard
+    dashboard_title: 'Panel de control',
+    dashboard_portfolio_value: 'Valor de la cartera',
+    dashboard_unrealized_pnl: 'Ganancias/Pérdidas no realizadas',
+    dashboard_open_positions: 'Posiciones abiertas',
+    dashboard_active_signals: 'Señales activas',
+    dashboard_capital_protection: 'Protección de capital',
+    dashboard_trading_mode: 'Modo de trading',
+
+    // Portfolio
+    portfolio_total_value: 'Valor total',
+    portfolio_unrealized_pnl: 'Ganancias/Pérdidas no realizadas',
+    portfolio_realized_pnl: 'Ganancias/Pérdidas realizadas',
+    portfolio_add_holding: 'Agregar activo',
+    portfolio_holdings: 'Activos mantenidos',
+    portfolio_allocation: 'Asignación',
+
+    // Positions
+    positions_open: 'Abierto',
+    positions_closed: 'Cerrado',
+    positions_add_position: 'Agregar posición',
+    positions_entry: 'Entrada',
+    positions_current_price: 'Precio actual',
+    positions_stop_loss: 'Stop loss',
+    positions_take_profit: 'Take profit',
+
+    // Signals
+    signals_title: 'Señales IA',
+    signals_confidence: 'Confianza',
+    signals_risk_score: 'Puntuación de riesgo',
+    signals_entry: 'Entrada',
+    signals_stop_loss: 'Stop loss',
+    signals_take_profit: 'Take profit',
+
+    // Alerts
+    alerts_title: 'Alertas',
+    alerts_unread: 'No leído',
+    alerts_mark_read: 'Marcar como leído',
+    alerts_no_alerts: 'Sin alertas',
+
+    // Market
+    market_title: 'Vista general del mercado',
+    market_top_gainers: 'Mayores ganancias',
+    market_top_losers: 'Mayores pérdidas',
+    market_search: 'Buscar activos',
+    market_filter_category: 'Filtrar por categoría',
+
+    // Risk Settings
+    risk_settings: 'Configuración de riesgo',
+    risk_max_per_trade: 'Riesgo máx por operación',
+    risk_max_daily_loss: 'Pérdida diaria máx',
+    risk_max_open_positions: 'Posiciones abiertas máx',
+    risk_block_memecoins: 'Bloquear memecoins',
+    risk_emergency_stop: 'Parada de emergencia',
+
+    // Audit Log
+    audit_log: 'Registro de auditoría',
+    audit_action: 'Acción',
+    audit_details: 'Detalles',
+    audit_timestamp: 'Marca de tiempo',
+
+    // Settings
+    settings_title: 'Configuración',
+    settings_account_settings: 'Configuración de cuenta y aplicación',
+    settings_profile: 'Perfil',
+    settings_name: 'Nombre',
+    settings_email: 'Correo electrónico',
+    settings_localization: 'Localización',
+    settings_language: 'Idioma',
+    settings_currency: 'Moneda',
+    settings_language_help: 'Idioma de la interfaz',
+    settings_currency_help: 'Se aplica a todos los valores de cartera y precios',
+    settings_unsaved_changes: 'Cambios sin guardar',
+    settings_unsaved_help: 'Sus preferencias de idioma y moneda aún no se han guardado.',
+    settings_exchange_connection: 'Conexión con el intercambio',
+    settings_exchange_coming: 'La integración de la API del intercambio estará disponible en una actualización futura.',
+    settings_exchange_api: 'Conecte sus claves API del intercambio (solo lectura o permisos de trading)',
+    settings_exchange_sync: 'Sincronizar automáticamente los saldos de la cartera',
+    settings_exchange_trade: 'Ejecutar operaciones a través de la plataforma',
+    settings_exchange_test: 'Probar la conexión antes de pasar a producción',
+    settings_security_notice: 'Aviso de seguridad',
+    settings_security_keys: 'Recomendamos usar claves API de solo lectura inicialmente. Nunca habilite permisos de retiro. Todas las claves API se cifrarán y almacenarán de forma segura.',
+    settings_security: 'Seguridad',
+    settings_2fa_coming: 'La autenticación es administrada por la plataforma. Funciones de seguridad adicionales como 2FA estarán disponibles en actualizaciones futuras.',
+    settings_logout: 'Cerrar sesión',
+    settings_save_changes: 'Guardar cambios',
+    settings_cancel: 'Cancelar',
+
+    // Agents
+    agents_title: 'Agentes IA',
+    agents_chat_with: 'Chatea con agentes especializados',
+    agents_new_chat: 'Nuevo chat',
+    agents_view_history: 'Ver historial',
+    agents_no_chats: 'Sin chats guardados',
+    agents_start_conversation: 'Inicia una conversación con',
+    agents_upload_chart: 'Carga una captura de pantalla del gráfico',
+    agents_analyzing: 'Analizando…',
+    agents_ask: 'Pregúntale a',
+    agents_add_note: 'Agregar nota o enviar imágenes…',
+    agents_chat_history: 'Historial de chats',
+
+    // Global
+    global_search: 'Búsqueda global',
+    global_search_placeholder: 'Comienza a escribir para buscar páginas, acciones y configuración',
+    global_search_no_results: 'No se encontraron resultados para',
+    global_close: 'Presione ESC para cerrar',
+    global_save: 'Guardar',
+    global_cancel: 'Cancelar',
+    global_no_data: 'Herramienta',
+  },
+  it: {
+    // Navigation
+    nav_dashboard: 'Dashboard',
+    nav_market: 'Mercato',
+    nav_portfolio: 'Portafoglio',
+    nav_signals: 'Segnali',
+    nav_positions: 'Posizioni',
+    nav_agents: 'Agenti IA',
+    nav_alerts: 'Avvisi',
+    nav_risk: 'Rischio',
+    nav_audit: 'Log di audit',
+    nav_settings: 'Impostazioni',
+
+    // Dashboard
+    dashboard_title: 'Dashboard',
+    dashboard_portfolio_value: 'Valore del portafoglio',
+    dashboard_unrealized_pnl: 'Profitti/Perdite non realizzati',
+    dashboard_open_positions: 'Posizioni aperte',
+    dashboard_active_signals: 'Segnali attivi',
+    dashboard_capital_protection: 'Protezione del capitale',
+    dashboard_trading_mode: 'Modalità di trading',
+
+    // Portfolio
+    portfolio_total_value: 'Valore totale',
+    portfolio_unrealized_pnl: 'Profitti/Perdite non realizzati',
+    portfolio_realized_pnl: 'Profitti/Perdite realizzati',
+    portfolio_add_holding: 'Aggiungi asset',
+    portfolio_holdings: 'Asset detenuti',
+    portfolio_allocation: 'Allocazione',
+
+    // Positions
+    positions_open: 'Aperto',
+    positions_closed: 'Chiuso',
+    positions_add_position: 'Aggiungi posizione',
+    positions_entry: 'Ingresso',
+    positions_current_price: 'Prezzo attuale',
+    positions_stop_loss: 'Stop loss',
+    positions_take_profit: 'Take profit',
+
+    // Signals
+    signals_title: 'Segnali IA',
+    signals_confidence: 'Confidenza',
+    signals_risk_score: 'Punteggio di rischio',
+    signals_entry: 'Ingresso',
+    signals_stop_loss: 'Stop loss',
+    signals_take_profit: 'Take profit',
+
+    // Alerts
+    alerts_title: 'Avvisi',
+    alerts_unread: 'Non letto',
+    alerts_mark_read: 'Segna come letto',
+    alerts_no_alerts: 'Nessun avviso',
+
+    // Market
+    market_title: 'Panoramica del mercato',
+    market_top_gainers: 'Migliori rialzi',
+    market_top_losers: 'Peggiori ribassi',
+    market_search: 'Cerca asset',
+    market_filter_category: 'Filtra per categoria',
+
+    // Risk Settings
+    risk_settings: 'Impostazioni di rischio',
+    risk_max_per_trade: 'Rischio max per trade',
+    risk_max_daily_loss: 'Perdita giornaliera max',
+    risk_max_open_positions: 'Posizioni aperte max',
+    risk_block_memecoins: 'Blocca memecoins',
+    risk_emergency_stop: 'Arresto di emergenza',
+
+    // Audit Log
+    audit_log: 'Log di audit',
+    audit_action: 'Azione',
+    audit_details: 'Dettagli',
+    audit_timestamp: 'Timestamp',
+
+    // Settings
+    settings_title: 'Impostazioni',
+    settings_account_settings: 'Impostazioni account e applicazione',
+    settings_profile: 'Profilo',
+    settings_name: 'Nome',
+    settings_email: 'Email',
+    settings_localization: 'Localizzazione',
+    settings_language: 'Lingua',
+    settings_currency: 'Valuta',
+    settings_language_help: 'Lingua dell\'interfaccia',
+    settings_currency_help: 'Applicato a tutti i valori del portafoglio e dei prezzi',
+    settings_unsaved_changes: 'Modifiche non salvate',
+    settings_unsaved_help: 'Le tue preferenze di lingua e valuta non sono ancora state salvate.',
+    settings_exchange_connection: 'Connessione exchange',
+    settings_exchange_coming: 'L\'integrazione dell\'API dell\'exchange sarà disponibile in un aggiornamento futuro.',
+    settings_exchange_api: 'Connetti le tue chiavi API dell\'exchange (sola lettura o permessi di trading)',
+    settings_exchange_sync: 'Sincronizza automaticamente i saldi del portafoglio',
+    settings_exchange_trade: 'Esegui trade tramite la piattaforma',
+    settings_exchange_test: 'Testa la connessione prima di andare in live',
+    settings_security_notice: 'Avviso di sicurezza',
+    settings_security_keys: 'Consigliamo di utilizzare inizialmente solo chiavi API in lettura. Non abilitare mai i permessi di prelievo. Tutte le chiavi API verranno crittografate e archiviate in modo sicuro.',
+    settings_security: 'Sicurezza',
+    settings_2fa_coming: 'L\'autenticazione è gestita dalla piattaforma. Funzioni di sicurezza aggiuntive come 2FA saranno disponibili negli aggiornamenti futuri.',
+    settings_logout: 'Esci',
+    settings_save_changes: 'Salva modifiche',
+    settings_cancel: 'Annulla',
+
+    // Agents
+    agents_title: 'Agenti IA',
+    agents_chat_with: 'Chatta con agenti specializzati',
+    agents_new_chat: 'Nuova chat',
+    agents_view_history: 'Visualizza cronologia',
+    agents_no_chats: 'Nessuna chat salvata',
+    agents_start_conversation: 'Avvia una conversazione con',
+    agents_upload_chart: 'Carica uno screenshot del grafico',
+    agents_analyzing: 'Analisi in corso…',
+    agents_ask: 'Chiedi a',
+    agents_add_note: 'Aggiungi nota o invia immagini…',
+    agents_chat_history: 'Cronologia chat',
+
+    // Global
+    global_search: 'Ricerca globale',
+    global_search_placeholder: 'Inizia a digitare per cercare pagine, azioni e impostazioni',
+    global_search_no_results: 'Nessun risultato trovato per',
+    global_close: 'Premi ESC per chiudere',
+    global_save: 'Salva',
+    global_cancel: 'Annulla',
+    global_no_data: 'Strumento',
+  },
+  pt: {
+    // Navigation
+    nav_dashboard: 'Painel',
+    nav_market: 'Mercado',
+    nav_portfolio: 'Portfólio',
+    nav_signals: 'Sinais',
+    nav_positions: 'Posições',
+    nav_agents: 'Agentes IA',
+    nav_alerts: 'Alertas',
+    nav_risk: 'Risco',
+    nav_audit: 'Log de auditoria',
+    nav_settings: 'Configurações',
+
+    // Dashboard
+    dashboard_title: 'Painel',
+    dashboard_portfolio_value: 'Valor do portfólio',
+    dashboard_unrealized_pnl: 'Lucro/Perda não realizado',
+    dashboard_open_positions: 'Posições abertas',
+    dashboard_active_signals: 'Sinais ativos',
+    dashboard_capital_protection: 'Proteção de capital',
+    dashboard_trading_mode: 'Modo de trading',
+
+    // Portfolio
+    portfolio_total_value: 'Valor total',
+    portfolio_unrealized_pnl: 'Lucro/Perda não realizado',
+    portfolio_realized_pnl: 'Lucro/Perda realizado',
+    portfolio_add_holding: 'Adicionar ativo',
+    portfolio_holdings: 'Ativos mantidos',
+    portfolio_allocation: 'Alocação',
+
+    // Positions
+    positions_open: 'Aberto',
+    positions_closed: 'Fechado',
+    positions_add_position: 'Adicionar posição',
+    positions_entry: 'Entrada',
+    positions_current_price: 'Preço atual',
+    positions_stop_loss: 'Stop loss',
+    positions_take_profit: 'Take profit',
+
+    // Signals
+    signals_title: 'Sinais IA',
+    signals_confidence: 'Confiança',
+    signals_risk_score: 'Pontuação de risco',
+    signals_entry: 'Entrada',
+    signals_stop_loss: 'Stop loss',
+    signals_take_profit: 'Take profit',
+
+    // Alerts
+    alerts_title: 'Alertas',
+    alerts_unread: 'Não lido',
+    alerts_mark_read: 'Marcar como lido',
+    alerts_no_alerts: 'Sem alertas',
+
+    // Market
+    market_title: 'Visão geral do mercado',
+    market_top_gainers: 'Maiores altas',
+    market_top_losers: 'Maiores baixas',
+    market_search: 'Pesquisar ativos',
+    market_filter_category: 'Filtrar por categoria',
+
+    // Risk Settings
+    risk_settings: 'Configurações de risco',
+    risk_max_per_trade: 'Risco máx por negociação',
+    risk_max_daily_loss: 'Perda diária máx',
+    risk_max_open_positions: 'Posições abertas máx',
+    risk_block_memecoins: 'Bloquear memecoins',
+    risk_emergency_stop: 'Parada de emergência',
+
+    // Audit Log
+    audit_log: 'Log de auditoria',
+    audit_action: 'Ação',
+    audit_details: 'Detalhes',
+    audit_timestamp: 'Carimbo de data/hora',
+
+    // Settings
+    settings_title: 'Configurações',
+    settings_account_settings: 'Configurações de conta e aplicativo',
+    settings_profile: 'Perfil',
+    settings_name: 'Nome',
+    settings_email: 'Email',
+    settings_localization: 'Localização',
+    settings_language: 'Idioma',
+    settings_currency: 'Moeda',
+    settings_language_help: 'Idioma da interface',
+    settings_currency_help: 'Aplicado a todos os valores de portfólio e preços',
+    settings_unsaved_changes: 'Alterações não salvas',
+    settings_unsaved_help: 'Suas preferências de idioma e moeda ainda não foram salvas.',
+    settings_exchange_connection: 'Conexão de câmbio',
+    settings_exchange_coming: 'A integração da API de câmbio estará disponível em uma atualização futura.',
+    settings_exchange_api: 'Conecte suas chaves de API de câmbio (somente leitura ou permissões de negociação)',
+    settings_exchange_sync: 'Sincronizar automaticamente os saldos do portfólio',
+    settings_exchange_trade: 'Executar negociações através da plataforma',
+    settings_exchange_test: 'Testar a conexão antes de ativar',
+    settings_security_notice: 'Aviso de segurança',
+    settings_security_keys: 'Recomendamos usar apenas chaves de API de leitura inicialmente. Nunca ative permissões de saque. Todas as chaves de API serão criptografadas e armazenadas com segurança.',
+    settings_security: 'Segurança',
+    settings_2fa_coming: 'A autenticação é gerenciada pela plataforma. Recursos de segurança adicionais como 2FA estarão disponíveis em atualizações futuras.',
+    settings_logout: 'Sair',
+    settings_save_changes: 'Salvar alterações',
+    settings_cancel: 'Cancelar',
+
+    // Agents
+    agents_title: 'Agentes IA',
+    agents_chat_with: 'Converse com agentes especializados',
+    agents_new_chat: 'Novo chat',
+    agents_view_history: 'Visualizar histórico',
+    agents_no_chats: 'Sem chats salvos',
+    agents_start_conversation: 'Inicie uma conversa com',
+    agents_upload_chart: 'Enviar captura de tela do gráfico',
+    agents_analyzing: 'Analisando…',
+    agents_ask: 'Pergunte a',
+    agents_add_note: 'Adicionar nota ou enviar imagens…',
+    agents_chat_history: 'Histórico de chats',
+
+    // Global
+    global_search: 'Pesquisa global',
+    global_search_placeholder: 'Comece a digitar para pesquisar páginas, ações e configurações',
+    global_search_no_results: 'Nenhum resultado encontrado para',
+    global_close: 'Pressione ESC para fechar',
+    global_save: 'Salvar',
+    global_cancel: 'Cancelar',
+    global_no_data: 'Ferramenta',
+  },
   en: {
     // Navigation
     nav_dashboard: 'Dashboard',
