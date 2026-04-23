@@ -81,7 +81,7 @@ export default function Portfolio() {
               </div>
             ))}
           </div>
-          <div className="flex gap-3 mt-4">
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <Button onClick={() => addAsset.mutate({
               ...form,
               quantity: parseFloat(form.quantity),
@@ -89,10 +89,10 @@ export default function Portfolio() {
               current_price: parseFloat(form.current_price || 0),
               current_value: parseFloat(form.quantity) * parseFloat(form.current_price || form.avg_buy_price || 0),
               unrealized_pnl: (parseFloat(form.current_price || form.avg_buy_price) - parseFloat(form.avg_buy_price)) * parseFloat(form.quantity),
-            })} disabled={!form.asset_symbol || !form.quantity}>
+            })} disabled={!form.asset_symbol || !form.quantity} className="sm:w-auto w-full">
               Add Holding
             </Button>
-            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowAdd(false)} className="sm:w-auto w-full">Cancel</Button>
           </div>
         </div>
       )}

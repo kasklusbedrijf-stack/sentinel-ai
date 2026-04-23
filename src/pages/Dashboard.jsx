@@ -114,7 +114,7 @@ export default function Dashboard() {
       </div>
 
       {/* Content grid */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <RecentSignals signals={signals} />
         <RecentAlerts alerts={alerts} />
       </div>
@@ -173,30 +173,30 @@ export default function Dashboard() {
 
       {/* Portfolio summary */}
       {portfolio.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-sm font-semibold text-foreground">Portfolio Holdings</h3>
             <Link to="/portfolio">
               <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">Full Portfolio</Button>
             </Link>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             {portfolio.slice(0, 5).map(asset => (
               <div key={asset.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-primary">
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
                   {asset.asset_symbol?.slice(0, 2)}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-foreground">{asset.asset_symbol}</div>
-                  <div className="text-xs text-muted-foreground">{asset.quantity} units</div>
+                  <div className="text-xs text-muted-foreground truncate">{asset.quantity} units</div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-shrink-0">
                   <div className="text-sm font-mono font-semibold text-foreground">
                     ${asset.current_value?.toFixed(2)}
                   </div>
                   <PnlText value={asset.unrealized_pnl_pct} suffix="%" />
                 </div>
-                <div className="text-xs text-muted-foreground font-mono w-12 text-right">
+                <div className="text-xs text-muted-foreground font-mono w-10 text-right flex-shrink-0 hidden sm:block">
                   {asset.allocation_pct?.toFixed(1)}%
                 </div>
               </div>

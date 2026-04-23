@@ -98,7 +98,7 @@ export default function Layout() {
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="h-14 border-b border-border bg-card/50 backdrop-blur-sm flex items-center px-4 gap-4 flex-shrink-0">
+        <header className="h-14 border-b border-border bg-card/50 backdrop-blur-sm flex items-center px-3 sm:px-4 gap-2 sm:gap-4 flex-shrink-0">
           <Button
             variant="ghost"
             size="icon"

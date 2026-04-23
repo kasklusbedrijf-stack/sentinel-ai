@@ -45,7 +45,7 @@ export default function Positions() {
       {showAdd && (
         <div className="bg-card border border-primary/30 rounded-xl p-5">
           <h3 className="font-semibold text-foreground mb-4">Add Manual Position</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {[
               { key: 'asset_symbol', label: 'Symbol', placeholder: 'BTC' },
               { key: 'entry_price', label: 'Entry Price', placeholder: '45000', type: 'number' },
@@ -72,7 +72,7 @@ export default function Positions() {
               </select>
             </div>
           </div>
-          <div className="flex gap-3 mt-4">
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <Button onClick={() => addPosition.mutate({
               ...form,
               entry_price: parseFloat(form.entry_price),
@@ -84,10 +84,10 @@ export default function Positions() {
               risk_pct: parseFloat(form.risk_pct),
               position_value: parseFloat(form.quantity) * parseFloat(form.current_price || form.entry_price),
               status: 'open',
-            })} disabled={!form.asset_symbol || !form.entry_price || !form.quantity}>
+            })} disabled={!form.asset_symbol || !form.entry_price || !form.quantity} className="sm:w-auto w-full">
               Add Position
             </Button>
-            <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowAdd(false)} className="sm:w-auto w-full">Cancel</Button>
           </div>
         </div>
       )}

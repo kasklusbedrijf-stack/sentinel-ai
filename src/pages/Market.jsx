@@ -91,8 +91,8 @@ export default function Market() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-3">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search assets..."
@@ -101,14 +101,14 @@ export default function Market() {
             className="pl-9 bg-card border-border"
           />
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 overflow-x-auto pb-0.5">
           {['market_cap', 'change_24h', 'volume'].map(s => (
             <Button
               key={s}
               variant={sortBy === s ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSortBy(s)}
-              className="text-xs h-9"
+              className="text-xs h-9 whitespace-nowrap flex-shrink-0"
             >
               {s === 'market_cap' ? 'Market Cap' : s === 'change_24h' ? '24h Change' : 'Volume'}
             </Button>
@@ -135,8 +135,8 @@ export default function Market() {
 
       {/* Table */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center gap-4 px-4 py-2.5 border-b border-border bg-muted/30 text-xs font-medium text-muted-foreground">
+        {/* Header — hidden on mobile since AssetRow handles its own layout */}
+        <div className="hidden sm:flex items-center gap-4 px-4 py-2.5 border-b border-border bg-muted/30 text-xs font-medium text-muted-foreground">
           <div className="w-32 flex-shrink-0">Asset</div>
           <div className="w-28 flex-shrink-0">Price</div>
           <div className="hidden sm:flex gap-4 flex-1">
