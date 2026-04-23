@@ -509,7 +509,10 @@ export default function AgentsPage() {
                   </div>
                 )}
 
-                {currentMessages.map((msg, i) => (
+                {currentMessages.map((msg, i) => {
+                   // Use local previews for optimistic updates, fallback to file_urls from backend
+                   const imageUrls = msg._localImagePreviews || msg.file_urls || [];
+                   return (
                    <div key={i} className={cn("flex gap-2.5 sm:gap-3", msg.role === 'user' ? 'justify-end' : 'justify-start')}>
                      {msg.role !== 'user' && (
                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -521,12 +524,12 @@ export default function AgentsPage() {
                        msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-card border border-border'
                      )}>
                        {/* Attached images preview in bubble (persistent) */}
-                       {(msg._localImagePreviews && msg._localImagePreviews.length > 0) && (
+                       {imageUrls.length > 0 && (
                          <div className={cn(
                            "px-3 pt-3 pb-2 flex gap-2 flex-wrap",
-                           msg._localImagePreviews.length === 1 ? "justify-center" : ""
+                           imageUrls.length === 1 ? "justify-center" : ""
                          )}>
-                           {msg._localImagePreviews.map((imgUrl, imgIdx) => (
+                           {imageUrls.map((imgUrl, imgIdx) => (
                              <button
                                key={imgIdx}
                                onClick={() => setLightboxSrc(imgUrl)}
@@ -537,7 +540,7 @@ export default function AgentsPage() {
                                  alt={`Chart screenshot ${imgIdx + 1}`}
                                  className={cn(
                                    "rounded-lg object-cover border border-white/10",
-                                   msg._localImagePreviews.length === 1 ? "max-h-48 w-auto" : "max-h-40 w-auto"
+                                   imageUrls.length === 1 ? "max-h-48 w-auto" : "max-h-40 w-auto"
                                  )}
                                />
                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
@@ -583,7 +586,8 @@ export default function AgentsPage() {
                       </div>
                     </div>
                   </div>
-                ))}
+                   );
+                })}
 
                 {sending && (
                   <div className="flex gap-2.5 sm:gap-3 justify-start">
