@@ -25,12 +25,12 @@ export default function Audit() {
   });
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-[1600px] mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <FileText className="w-6 h-6 text-primary" /> Audit Log
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+          <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> Audit Log
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Complete record of all system actions and events</p>
+        <p className="text-sm text-muted-foreground mt-0.5 sm:mt-1">Complete record of all system actions and events</p>
       </div>
 
       {/* Mobile cards */}
@@ -43,12 +43,12 @@ export default function Audit() {
           const IconComp = severityIcons[log.severity] || Info;
           return (
             <div key={log.id} className="bg-card border border-border rounded-xl p-4 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <Badge variant="outline" className="text-[10px] capitalize">{log.action?.replace(/_/g, ' ')}</Badge>
-                <div className="flex items-center gap-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge variant="outline" className="text-[10px] capitalize">{log.action?.replace(/_/g, ' ')}</Badge>
                   {log.asset_symbol && <span className="text-[10px] font-mono font-bold text-primary">{log.asset_symbol}</span>}
-                  <IconComp className={cn("w-4 h-4", severityColors[log.severity])} />
                 </div>
+                <IconComp className={cn("w-4 h-4 flex-shrink-0 mt-0.5", severityColors[log.severity])} />
               </div>
               <p className="text-sm text-foreground leading-relaxed">{log.details}</p>
               <p className="text-xs font-mono text-muted-foreground">

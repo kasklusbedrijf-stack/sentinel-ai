@@ -58,16 +58,16 @@ export default function Portfolio() {
 
       {/* Add Form */}
       {showAdd && (
-        <div className="bg-card border border-primary/30 rounded-xl p-5">
-          <h3 className="font-semibold text-foreground mb-4">Add Holding</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="bg-card border border-primary/30 rounded-xl p-4 sm:p-5">
+          <h3 className="font-semibold text-foreground mb-3 sm:mb-4">Add Holding</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {[
-              { key: 'asset_symbol', placeholder: 'Symbol (e.g. BTC)', label: 'Symbol' },
-              { key: 'asset_name', placeholder: 'Name (e.g. Bitcoin)', label: 'Name' },
-              { key: 'quantity', placeholder: 'Quantity', label: 'Quantity', type: 'number' },
-              { key: 'avg_buy_price', placeholder: 'Avg buy price ($)', label: 'Avg Buy Price', type: 'number' },
-              { key: 'current_price', placeholder: 'Current price ($)', label: 'Current Price', type: 'number' },
-              { key: 'category', placeholder: 'Category', label: 'Category' },
+              { key: 'asset_symbol', placeholder: 'BTC', label: 'Symbol' },
+              { key: 'asset_name', placeholder: 'Bitcoin', label: 'Name' },
+              { key: 'quantity', placeholder: '0.5', label: 'Quantity', type: 'number' },
+              { key: 'avg_buy_price', placeholder: '45000', label: 'Avg Buy ($)', type: 'number' },
+              { key: 'current_price', placeholder: '46000', label: 'Current Price ($)', type: 'number' },
+              { key: 'category', placeholder: 'e.g. layer1', label: 'Category' },
             ].map((field) => (
               <div key={field.key}>
                 <label className="text-xs text-muted-foreground block mb-1">{field.label}</label>
@@ -76,7 +76,7 @@ export default function Portfolio() {
                   placeholder={field.placeholder}
                   value={form[field.key] || ''}
                   onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
-                  className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                  className="w-full px-3 py-2.5 bg-secondary border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                 />
               </div>
             ))}

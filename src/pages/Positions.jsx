@@ -43,11 +43,11 @@ export default function Positions() {
 
       {/* Add form */}
       {showAdd && (
-        <div className="bg-card border border-primary/30 rounded-xl p-5">
+        <div className="bg-card border border-primary/30 rounded-xl p-4 sm:p-5">
           <h3 className="font-semibold text-foreground mb-4">Add Manual Position</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {[
-              { key: 'asset_symbol', label: 'Symbol', placeholder: 'BTC' },
+              { key: 'asset_symbol', label: 'Symbol', placeholder: 'BTC', col: 'col-span-2 sm:col-span-1' },
               { key: 'entry_price', label: 'Entry Price', placeholder: '45000', type: 'number' },
               { key: 'current_price', label: 'Current Price', placeholder: '46000', type: 'number' },
               { key: 'quantity', label: 'Quantity', placeholder: '0.1', type: 'number' },
@@ -56,17 +56,17 @@ export default function Positions() {
               { key: 'tp2', label: 'TP2', placeholder: '52000', type: 'number' },
               { key: 'risk_pct', label: 'Risk %', placeholder: '2', type: 'number' },
             ].map((f) => (
-              <div key={f.key}>
+              <div key={f.key} className={f.col || ''}>
                 <label className="text-xs text-muted-foreground block mb-1">{f.label}</label>
                 <input type={f.type || 'text'} placeholder={f.placeholder}
                   value={form[f.key] || ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                  className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
+                  className="w-full px-3 py-2.5 bg-secondary border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring" />
               </div>
             ))}
             <div>
               <label className="text-xs text-muted-foreground block mb-1">Side</label>
               <select value={form.side} onChange={(e) => setForm({ ...form, side: e.target.value })}
-                className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+                className="w-full px-3 py-2.5 bg-secondary border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
                 <option value="long">Long</option>
                 <option value="short">Short</option>
               </select>

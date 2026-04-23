@@ -100,15 +100,15 @@ export default function Dashboard() {
       </div>
 
       {/* Risk mode banner */}
-      <div className="flex items-center gap-3 p-4 rounded-xl border border-primary/20 bg-primary/5">
-        <BarChart3 className="w-5 h-5 text-primary flex-shrink-0" />
-        <div>
-          <span className="text-sm font-semibold text-foreground">Trading Mode: </span>
-          <span className="text-sm text-primary font-mono uppercase">{riskSettings?.trading_mode || 'analysis_only'}</span>
+      <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-primary/20 bg-primary/5">
+        <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <span className="text-xs sm:text-sm font-semibold text-foreground">Trading Mode: </span>
+          <span className="text-xs sm:text-sm text-primary font-mono uppercase">{riskSettings?.trading_mode || 'analysis_only'}</span>
         </div>
-        <div className="ml-auto">
+        <div className="flex-shrink-0">
           <Link to="/settings">
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">Change Mode</Button>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7 px-2 sm:px-3">Change Mode</Button>
           </Link>
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function Dashboard() {
 
       {/* Open Positions preview */}
       {positions.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5 overflow-hidden">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-sm font-semibold text-foreground">Open Positions</h3>
             <Link to="/positions">

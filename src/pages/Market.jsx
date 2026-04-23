@@ -48,40 +48,40 @@ export default function Market() {
   const losers = [...assets].sort((a, b) => (a.price_change_24h || 0) - (b.price_change_24h || 0)).slice(0, 3);
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-5 sm:space-y-6">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Market Overview</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Live prices, trends and AI signals</p>
       </div>
 
       {/* Gainers / Losers */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-4 h-4 text-green-400" />
-            <span className="text-sm font-semibold text-green-400">Top Gainers (24h)</span>
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
+        <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
+            <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-semibold text-green-400 truncate">Top Gainers</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             {gainers.map(a => (
-              <div key={a.id} className="flex items-center justify-between">
-                <span className="text-sm font-mono text-foreground">{a.symbol}</span>
-                <span className="text-sm font-mono font-bold text-green-400">
+              <div key={a.id} className="flex items-center justify-between gap-1 min-w-0">
+                <span className="text-xs sm:text-sm font-mono text-foreground truncate">{a.symbol}</span>
+                <span className="text-xs sm:text-sm font-mono font-bold text-green-400 flex-shrink-0">
                   +{a.price_change_24h?.toFixed(2)}%
                 </span>
               </div>
             ))}
           </div>
         </div>
-        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingDown className="w-4 h-4 text-red-400" />
-            <span className="text-sm font-semibold text-red-400">Top Losers (24h)</span>
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
+            <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-semibold text-red-400 truncate">Top Losers</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             {losers.map(a => (
-              <div key={a.id} className="flex items-center justify-between">
-                <span className="text-sm font-mono text-foreground">{a.symbol}</span>
-                <span className="text-sm font-mono font-bold text-red-400">
+              <div key={a.id} className="flex items-center justify-between gap-1 min-w-0">
+                <span className="text-xs sm:text-sm font-mono text-foreground truncate">{a.symbol}</span>
+                <span className="text-xs sm:text-sm font-mono font-bold text-red-400 flex-shrink-0">
                   {a.price_change_24h?.toFixed(2)}%
                 </span>
               </div>
@@ -133,9 +133,9 @@ export default function Market() {
         ))}
       </div>
 
-      {/* Table */}
+      {/* Asset list */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        {/* Header — hidden on mobile since AssetRow handles its own layout */}
+        {/* Header — desktop only */}
         <div className="hidden sm:flex items-center gap-4 px-4 py-2.5 border-b border-border bg-muted/30 text-xs font-medium text-muted-foreground">
           <div className="w-32 flex-shrink-0">Asset</div>
           <div className="w-28 flex-shrink-0">Price</div>

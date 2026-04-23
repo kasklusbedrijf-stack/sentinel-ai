@@ -110,18 +110,19 @@ export default function Layout() {
 
           <div className="flex-1" />
 
-          <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/5 hidden sm:flex">
-            <Shield className="w-3 h-3 mr-1" />
+          {/* Capital Protection badge — text on sm+, icon-only on mobile */}
+          <Badge variant="outline" className="hidden sm:inline-flex items-center gap-1 text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/5 px-2.5 py-1">
+            <Shield className="w-3 h-3" />
             Capital Protection ON
           </Badge>
-          <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/5 sm:hidden">
-            <Shield className="w-3 h-3" />
+          <Badge variant="outline" className="sm:hidden inline-flex items-center justify-center w-8 h-8 rounded-md text-yellow-400 border-yellow-400/30 bg-yellow-400/5 p-0">
+            <Shield className="w-3.5 h-3.5" />
           </Badge>
 
           <Link to="/alerts">
-            <Button variant="ghost" size="icon" className="relative">
+            <Button variant="ghost" size="icon" className="relative w-9 h-9">
               <Bell className="w-4 h-4" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-destructive rounded-full" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
             </Button>
           </Link>
         </header>
