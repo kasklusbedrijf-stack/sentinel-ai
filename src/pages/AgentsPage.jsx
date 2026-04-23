@@ -391,12 +391,14 @@ export default function AgentsPage() {
     setInput('');
     setPendingImages([]);
 
+    // Track actual user content (what they typed or default note)
+    const userNote = text || (hasImages ? 'Analyze these chart screenshots.' : '');
+
     // Build optimistic message with local previews (persistent)
     const optimisticMsg = {
       role: 'user',
-      content: hasImages
-        ? (text || 'Analyze these chart screenshots.')
-        : text,
+      content: userNote, // Display: only user's actual content
+      _userText: userNote, // Track actual user content for display
       _localImagePreviews: imagesToSend, // local only, not persisted, but displayed
     };
 
@@ -410,13 +412,14 @@ export default function AgentsPage() {
       const fileUrls = await Promise.all(imagesToSend.map(img => uploadImage(img)));
       const ag = AGENTS.find(a => a.name === agentName);
       const chartInstruction = ag?.chartPrompt || '';
-      const messageContent = chartInstruction
-        ? `${chartInstruction}\n\nUser note: ${text || 'Please analyze these chart screenshots.'}`
-        : (text || 'Please analyze these chart screenshots.');
+      // Send prompt to agent for processing, but not as visible message content
+      const backendContent = chartInstruction
+        ? `${chartInstruction}\n\nUser note: ${userNote}`
+        : userNote;
 
       await base44.agents.addMessage(conv, {
         role: 'user',
-        content: messageContent,
+        content: backendContent, // Full prompt goes to agent only
         file_urls: fileUrls,
       });
     } else {
@@ -424,6 +427,15 @@ export default function AgentsPage() {
     }
 
     setSending(false);
+  };
+
+  // Extract user's actual content from message (strips internal prompts)
+  const extractUserContent = (fullContent) => {
+    // Look for the "User note:" pattern where user content starts
+    const match = fullContent.match(/\n\nUser note: (.*)$/s);
+    if (match) return match[1];
+    // If no pattern found, return as-is (regular user message)
+    return fullContent;
   };
 
   const handleKeyDown = (e) => {
@@ -618,6 +630,10 @@ export default function AgentsPage() {
                 {currentMessages.map((msg, i) => {
                    // Use local previews for optimistic updates, fallback to file_urls from backend
                    const imageUrls = msg._localImagePreviews || msg.file_urls || [];
+                   // Extract user's actual content, stripping any hidden prompts
+                   const displayContent = msg.role === 'user'
+                     ? (msg._userText || extractUserContent(msg.content))
+                     : msg.content;
                    return (
                    <div key={i} className={cn("flex gap-2.5 sm:gap-3", msg.role === 'user' ? 'justify-end' : 'justify-start')}>
                      {msg.role !== 'user' && (
@@ -656,44 +672,47 @@ export default function AgentsPage() {
                            ))}
                          </div>
                        )}
-                      <div className="px-3.5 sm:px-4 py-2.5 sm:py-3">
-                        {msg.role === 'user' ? (
-                          <p className="leading-relaxed break-words text-sm">{msg.content?.replace(/^You are .+?screenshot alone\.\n\nUser note: /s, '')}</p>
-                        ) : (
-                          <ReactMarkdown
-                            className="prose prose-sm prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 break-words"
-                            components={{
-                              code: ({ inline, children }) => inline
-                                ? <code className="px-1 py-0.5 rounded bg-secondary text-xs font-mono break-all">{children}</code>
-                                : <pre className="bg-secondary rounded-lg p-3 overflow-x-auto my-2 text-xs"><code className="font-mono whitespace-pre-wrap">{children}</code></pre>,
-                              p: ({ children }) => <p className="my-1 leading-relaxed">{children}</p>,
-                              ul: ({ children }) => <ul className="my-1 ml-4 list-disc space-y-0.5">{children}</ul>,
-                              ol: ({ children }) => <ol className="my-1 ml-4 list-decimal space-y-0.5">{children}</ol>,
-                              li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                              h3: ({ children }) => <h3 className="font-semibold text-sm mt-2 mb-1 text-foreground">{children}</h3>,
-                              strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-                            }}
-                          >
-                            {msg.content}
-                          </ReactMarkdown>
-                        )}
-                        {/* Tool calls */}
-                        {msg.tool_calls?.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {msg.tool_calls.map((tc, ti) => (
-                              <div key={ti} className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/50 rounded px-2 py-1 min-w-0">
-                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", tc.status === 'completed' ? 'bg-green-400' : tc.status === 'running' ? 'bg-yellow-400 animate-pulse' : 'bg-muted-foreground')} />
-                                <span className="font-mono truncate">{tc.name || 'tool'}</span>
-                                <span className="text-muted-foreground flex-shrink-0">{tc.status}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                   );
-                })}
+                       {/* Only render content if it exists and is not empty after extraction */}
+                       {displayContent?.trim() && (
+                         <div className="px-3.5 sm:px-4 py-2.5 sm:py-3">
+                           {msg.role === 'user' ? (
+                             <p className="leading-relaxed break-words text-sm">{displayContent}</p>
+                           ) : (
+                             <ReactMarkdown
+                               className="prose prose-sm prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 break-words"
+                               components={{
+                                 code: ({ inline, children }) => inline
+                                   ? <code className="px-1 py-0.5 rounded bg-secondary text-xs font-mono break-all">{children}</code>
+                                   : <pre className="bg-secondary rounded-lg p-3 overflow-x-auto my-2 text-xs"><code className="font-mono whitespace-pre-wrap">{children}</code></pre>,
+                                 p: ({ children }) => <p className="my-1 leading-relaxed">{children}</p>,
+                                 ul: ({ children }) => <ul className="my-1 ml-4 list-disc space-y-0.5">{children}</ul>,
+                                 ol: ({ children }) => <ol className="my-1 ml-4 list-decimal space-y-0.5">{children}</ol>,
+                                 li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                                 h3: ({ children }) => <h3 className="font-semibold text-sm mt-2 mb-1 text-foreground">{children}</h3>,
+                                 strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                               }}
+                             >
+                               {displayContent}
+                             </ReactMarkdown>
+                           )}
+                           {/* Tool calls */}
+                           {msg.tool_calls?.length > 0 && (
+                             <div className="mt-2 space-y-1">
+                               {msg.tool_calls.map((tc, ti) => (
+                                 <div key={ti} className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/50 rounded px-2 py-1 min-w-0">
+                                   <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", tc.status === 'completed' ? 'bg-green-400' : tc.status === 'running' ? 'bg-yellow-400 animate-pulse' : 'bg-muted-foreground')} />
+                                   <span className="font-mono truncate">{tc.name || 'tool'}</span>
+                                   <span className="text-muted-foreground flex-shrink-0">{tc.status}</span>
+                                 </div>
+                               ))}
+                             </div>
+                           )}
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                    );
+                 })}
 
                 {sending && (
                   <div className="flex gap-2.5 sm:gap-3 justify-start">
