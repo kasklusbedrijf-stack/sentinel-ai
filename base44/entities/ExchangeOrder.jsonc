@@ -1,0 +1,99 @@
+{
+  "name": "ExchangeOrder",
+  "type": "object",
+  "properties": {
+    "trade_approval_id": {
+      "type": "string",
+      "description": "Reference to TradeApproval"
+    },
+    "asset_symbol": {
+      "type": "string",
+      "description": "e.g., BTC, ETH"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "sell"
+      ]
+    },
+    "order_type": {
+      "type": "string",
+      "enum": [
+        "market",
+        "limit"
+      ],
+      "default": "limit"
+    },
+    "entry_price": {
+      "type": "number"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Amount to trade"
+    },
+    "stop_loss": {
+      "type": "number"
+    },
+    "tp1": {
+      "type": "number"
+    },
+    "tp2": {
+      "type": "number"
+    },
+    "tp3": {
+      "type": "number"
+    },
+    "exchange": {
+      "type": "string",
+      "default": "kraken",
+      "description": "Exchange name"
+    },
+    "exchange_order_id": {
+      "type": "string",
+      "description": "Order ID from Kraken"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "sent",
+        "open",
+        "filled",
+        "partial_fill",
+        "cancelled",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "filled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "filled_price": {
+      "type": "number",
+      "description": "Actual execution price"
+    },
+    "filled_quantity": {
+      "type": "number"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "If order failed"
+    },
+    "raw_response": {
+      "type": "string",
+      "description": "Full Kraken API response (JSON string)"
+    }
+  },
+  "required": [
+    "trade_approval_id",
+    "asset_symbol",
+    "direction",
+    "exchange"
+  ]
+}

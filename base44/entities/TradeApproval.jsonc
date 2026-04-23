@@ -1,0 +1,126 @@
+{
+  "name": "TradeApproval",
+  "type": "object",
+  "properties": {
+    "asset_symbol": {
+      "type": "string",
+      "description": "e.g., BTC, ETH"
+    },
+    "asset_name": {
+      "type": "string",
+      "description": "Full name"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "sell"
+      ],
+      "description": "Trade direction"
+    },
+    "entry_price": {
+      "type": "number"
+    },
+    "stop_loss": {
+      "type": "number"
+    },
+    "tp1": {
+      "type": "number"
+    },
+    "tp2": {
+      "type": "number"
+    },
+    "tp3": {
+      "type": "number"
+    },
+    "position_size_pct": {
+      "type": "number",
+      "description": "% of portfolio to risk"
+    },
+    "estimated_risk": {
+      "type": "number",
+      "description": "USD amount at risk"
+    },
+    "estimated_reward": {
+      "type": "number",
+      "description": "USD amount potential gain"
+    },
+    "rr_ratio": {
+      "type": "number",
+      "description": "Reward/Risk ratio"
+    },
+    "confidence_score": {
+      "type": "number",
+      "description": "0-100"
+    },
+    "risk_score": {
+      "type": "number",
+      "description": "0-100, higher = riskier"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Short rationale"
+    },
+    "detailed_rationale": {
+      "type": "string",
+      "description": "Full explanation"
+    },
+    "signal_id": {
+      "type": "string",
+      "description": "Reference to AISignal"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "sent",
+        "filled",
+        "partial",
+        "cancelled",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "validity_reason": {
+      "type": "string",
+      "description": "Why trade is valid or invalid"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of approval"
+    },
+    "rejected_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of rejection"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "exchange_order_id": {
+      "type": "string",
+      "description": "Reference to ExchangeOrder"
+    },
+    "edited_entry": {
+      "type": "number",
+      "description": "User-modified entry if allowed"
+    },
+    "edited_stop_loss": {
+      "type": "number",
+      "description": "User-modified stop loss"
+    },
+    "edited_tp1": {
+      "type": "number",
+      "description": "User-modified TP1"
+    }
+  },
+  "required": [
+    "asset_symbol",
+    "direction",
+    "entry_price",
+    "status"
+  ]
+}

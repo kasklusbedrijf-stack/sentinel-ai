@@ -4,11 +4,11 @@ import { DollarSign, TrendingUp, BarChart3, ShieldAlert, Activity, Zap } from 'l
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentSignals from '@/components/dashboard/RecentSignals';
 import RecentAlerts from '@/components/dashboard/RecentAlerts';
+import TradeApprovalWidget from '@/components/TradeApprovalWidget';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SignalBadge, PnlText } from '@/components/ui/signal-badge';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
-import { useAppPreferences as useT } from '@/lib/AppPreferencesContext';
 
 export default function Dashboard() {
   const [portfolio, setPortfolio] = useState([]);
@@ -115,6 +115,9 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Pending Trade Approvals */}
+      <TradeApprovalWidget />
 
       {/* Content grid */}
       <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
