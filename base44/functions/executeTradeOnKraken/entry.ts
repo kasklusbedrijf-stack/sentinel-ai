@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
       closetm: '0',
       deadline: '',
       userref: trade_approval_id,
-      validate: 'false', // Set to true first to validate without submitting
+      validate: 'true', // Validate first; change to 'false' for live execution
     });
 
     // Sign request with HMAC-SHA512
