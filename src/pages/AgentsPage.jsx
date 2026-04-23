@@ -118,11 +118,11 @@ export default function AgentsPage() {
         "w-full sm:w-64",
         selectedAgent ? "hidden sm:flex" : "flex"
       )}>
-        <div className="p-4 border-b border-border">
-          <h2 className="font-bold text-sm flex items-center gap-2"><Bot className="w-4 h-4 text-primary" /> AI Agents</h2>
+        <div className="px-4 py-4 border-b border-border">
+          <h2 className="font-bold text-base flex items-center gap-2"><Bot className="w-4 h-4 text-primary" /> AI Agents</h2>
           <p className="text-xs text-muted-foreground mt-1">Chat with specialized agents</p>
         </div>
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+        <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {AGENTS.map(ag => {
             const Icon = ag.icon;
             const isActive = selectedAgent === ag.name;
@@ -199,14 +199,14 @@ export default function AgentsPage() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4">
               {currentMessages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full py-8 px-2 text-center">
-                  <p className="text-muted-foreground text-sm mb-4">Start a conversation with {agent?.label}</p>
-                  <div className="flex flex-wrap justify-center gap-2 max-w-xs sm:max-w-none">
+                <div className="flex flex-col items-center pt-10 pb-4 px-2 text-center">
+                  <p className="text-muted-foreground text-sm mb-5">Start a conversation with {agent?.label}</p>
+                  <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 w-full max-w-sm sm:max-w-none">
                     {agent?.examples.map(ex => (
                       <button
                         key={ex}
                         onClick={() => setInput(ex)}
-                        className="px-3 py-2 rounded-full border border-border text-xs text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors text-left leading-snug"
+                        className="px-4 py-2.5 rounded-xl border border-border text-xs text-muted-foreground hover:border-primary/40 hover:text-foreground hover:bg-primary/5 transition-all text-left leading-snug w-full sm:w-auto"
                       >
                         {ex}
                       </button>
@@ -275,7 +275,7 @@ export default function AgentsPage() {
             </div>
 
             {/* Input */}
-            <div className="px-3 sm:px-4 py-3 sm:py-4 border-t border-border bg-card/30 pb-safe">
+            <div className="px-3 sm:px-4 pt-3 pb-4 sm:py-4 border-t border-border bg-card/30" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
               <div className="flex gap-2 items-center">
                 <Input
                   value={input}
