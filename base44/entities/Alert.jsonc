@@ -1,0 +1,52 @@
+{
+  "name": "Alert",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "signal",
+        "risk",
+        "tp_hit",
+        "sl_hit",
+        "price",
+        "volatility",
+        "system",
+        "emergency"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info"
+    },
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "asset_symbol": {
+      "type": "string"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "related_signal_id": {
+      "type": "string"
+    },
+    "related_position_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "title",
+    "message"
+  ]
+}

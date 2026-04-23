@@ -1,0 +1,43 @@
+{
+  "name": "PortfolioAsset",
+  "type": "object",
+  "properties": {
+    "asset_symbol": {
+      "type": "string"
+    },
+    "asset_name": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "number"
+    },
+    "avg_buy_price": {
+      "type": "number"
+    },
+    "current_price": {
+      "type": "number"
+    },
+    "current_value": {
+      "type": "number"
+    },
+    "allocation_pct": {
+      "type": "number"
+    },
+    "unrealized_pnl": {
+      "type": "number"
+    },
+    "unrealized_pnl_pct": {
+      "type": "number"
+    },
+    "realized_pnl": {
+      "type": "number"
+    },
+    "category": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "asset_symbol",
+    "quantity"
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "name": "AISignal",
+  "type": "object",
+  "properties": {
+    "asset_symbol": {
+      "type": "string"
+    },
+    "asset_name": {
+      "type": "string"
+    },
+    "signal_type": {
+      "type": "string",
+      "enum": [
+        "BUY",
+        "PARTIAL_BUY",
+        "HOLD",
+        "WAIT",
+        "PARTIAL_SELL",
+        "SELL"
+      ]
+    },
+    "confidence_score": {
+      "type": "number",
+      "description": "0-100"
+    },
+    "risk_score": {
+      "type": "number",
+      "description": "0-100, higher = riskier"
+    },
+    "trend_score": {
+      "type": "number"
+    },
+    "momentum_score": {
+      "type": "number"
+    },
+    "volume_score": {
+      "type": "number"
+    },
+    "technical_score": {
+      "type": "number"
+    },
+    "market_context_score": {
+      "type": "number"
+    },
+    "suggested_entry": {
+      "type": "number"
+    },
+    "suggested_stop_loss": {
+      "type": "number"
+    },
+    "suggested_tp1": {
+      "type": "number"
+    },
+    "suggested_tp2": {
+      "type": "number"
+    },
+    "suggested_tp3": {
+      "type": "number"
+    },
+    "suggested_position_size_pct": {
+      "type": "number"
+    },
+    "reward_risk_ratio": {
+      "type": "number"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "detailed_explanation": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "executed",
+        "expired",
+        "rejected"
+      ],
+      "default": "active"
+    },
+    "timeframe": {
+      "type": "string",
+      "enum": [
+        "1H",
+        "4H",
+        "1D",
+        "1W"
+      ]
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Which agent generated this"
+    }
+  },
+  "required": [
+    "asset_symbol",
+    "signal_type",
+    "confidence_score"
+  ]
+}

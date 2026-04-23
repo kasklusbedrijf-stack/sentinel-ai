@@ -1,0 +1,65 @@
+{
+  "name": "ExchangeConnection",
+  "type": "object",
+  "properties": {
+    "exchange_name": {
+      "type": "string",
+      "enum": [
+        "Binance",
+        "Bybit",
+        "OKX",
+        "Kraken",
+        "Coinbase",
+        "Other"
+      ]
+    },
+    "api_key_hint": {
+      "type": "string",
+      "description": "Last 4 chars of API key only"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "CONNECTED",
+        "DISCONNECTED",
+        "ERROR",
+        "PENDING"
+      ],
+      "default": "DISCONNECTED"
+    },
+    "permission_mode": {
+      "type": "string",
+      "enum": [
+        "read_only",
+        "trade_enabled"
+      ],
+      "default": "read_only"
+    },
+    "can_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_trade": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_withdraw": {
+      "type": "boolean",
+      "default": false,
+      "description": "Should stay false for safety"
+    },
+    "last_sync": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "balance_usd": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "exchange_name"
+  ]
+}

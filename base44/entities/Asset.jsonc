@@ -1,0 +1,97 @@
+{
+  "name": "Asset",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Ticker symbol e.g. BTC"
+    },
+    "name": {
+      "type": "string",
+      "description": "Full name e.g. Bitcoin"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "layer1",
+        "layer2",
+        "defi",
+        "ai",
+        "meme",
+        "stablecoin",
+        "gaming",
+        "privacy",
+        "other"
+      ]
+    },
+    "current_price": {
+      "type": "number"
+    },
+    "change_1h": {
+      "type": "number"
+    },
+    "change_24h": {
+      "type": "number"
+    },
+    "change_7d": {
+      "type": "number"
+    },
+    "volume_24h": {
+      "type": "number"
+    },
+    "market_cap": {
+      "type": "number"
+    },
+    "volatility": {
+      "type": "number",
+      "description": "Volatility score 0-100"
+    },
+    "trend_status": {
+      "type": "string",
+      "enum": [
+        "strong_bullish",
+        "bullish",
+        "neutral",
+        "bearish",
+        "strong_bearish"
+      ]
+    },
+    "support_level": {
+      "type": "number"
+    },
+    "resistance_level": {
+      "type": "number"
+    },
+    "rsi": {
+      "type": "number"
+    },
+    "macd_signal": {
+      "type": "string",
+      "enum": [
+        "bullish",
+        "bearish",
+        "neutral"
+      ]
+    },
+    "ema_20": {
+      "type": "number"
+    },
+    "ema_50": {
+      "type": "number"
+    },
+    "ema_200": {
+      "type": "number"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "is_watchlisted": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "symbol",
+    "name"
+  ]
+}

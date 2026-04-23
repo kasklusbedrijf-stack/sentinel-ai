@@ -1,0 +1,70 @@
+{
+  "name": "RiskSettings",
+  "type": "object",
+  "properties": {
+    "max_risk_per_trade_pct": {
+      "type": "number",
+      "default": 2,
+      "description": "Max % of portfolio risked per trade"
+    },
+    "max_daily_loss_pct": {
+      "type": "number",
+      "default": 5
+    },
+    "max_open_positions": {
+      "type": "number",
+      "default": 5
+    },
+    "max_single_coin_exposure_pct": {
+      "type": "number",
+      "default": 25
+    },
+    "max_alt_exposure_pct": {
+      "type": "number",
+      "default": 50
+    },
+    "allow_auto_trading": {
+      "type": "boolean",
+      "default": false
+    },
+    "block_memecoins": {
+      "type": "boolean",
+      "default": true
+    },
+    "block_high_risk": {
+      "type": "boolean",
+      "default": true
+    },
+    "auto_pause_after_losses": {
+      "type": "number",
+      "default": 3,
+      "description": "Pause after N consecutive losses"
+    },
+    "min_confidence_threshold": {
+      "type": "number",
+      "default": 65
+    },
+    "max_risk_score_threshold": {
+      "type": "number",
+      "default": 70
+    },
+    "min_rr_ratio": {
+      "type": "number",
+      "default": 2
+    },
+    "trading_mode": {
+      "type": "string",
+      "enum": [
+        "analysis_only",
+        "semi_auto",
+        "auto"
+      ],
+      "default": "analysis_only"
+    },
+    "emergency_stop_active": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": []
+}

@@ -1,0 +1,48 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "login",
+        "api_connect",
+        "order_placed",
+        "order_executed",
+        "order_cancelled",
+        "emergency_stop",
+        "risk_settings_changed",
+        "signal_generated",
+        "position_opened",
+        "position_closed",
+        "alert_triggered"
+      ]
+    },
+    "details": {
+      "type": "string"
+    },
+    "asset_symbol": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "JSON string of extra data"
+    }
+  },
+  "required": [
+    "action",
+    "details"
+  ]
+}

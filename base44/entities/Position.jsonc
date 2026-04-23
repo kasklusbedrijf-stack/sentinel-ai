@@ -1,0 +1,78 @@
+{
+  "name": "Position",
+  "type": "object",
+  "properties": {
+    "asset_symbol": {
+      "type": "string"
+    },
+    "asset_name": {
+      "type": "string"
+    },
+    "side": {
+      "type": "string",
+      "enum": [
+        "long",
+        "short"
+      ],
+      "default": "long"
+    },
+    "entry_price": {
+      "type": "number"
+    },
+    "current_price": {
+      "type": "number"
+    },
+    "quantity": {
+      "type": "number"
+    },
+    "position_value": {
+      "type": "number"
+    },
+    "stop_loss": {
+      "type": "number"
+    },
+    "tp1": {
+      "type": "number"
+    },
+    "tp2": {
+      "type": "number"
+    },
+    "tp3": {
+      "type": "number"
+    },
+    "risk_pct": {
+      "type": "number"
+    },
+    "pnl": {
+      "type": "number"
+    },
+    "pnl_pct": {
+      "type": "number"
+    },
+    "trailing_stop_active": {
+      "type": "boolean",
+      "default": false
+    },
+    "break_even_active": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "partially_closed",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "asset_symbol",
+    "entry_price",
+    "quantity"
+  ]
+}

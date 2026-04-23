@@ -1,0 +1,82 @@
+{
+  "name": "TradeOrder",
+  "type": "object",
+  "properties": {
+    "asset_symbol": {
+      "type": "string"
+    },
+    "order_type": {
+      "type": "string",
+      "enum": [
+        "market",
+        "limit",
+        "stop_loss",
+        "take_profit"
+      ]
+    },
+    "side": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "sell"
+      ]
+    },
+    "quantity": {
+      "type": "number"
+    },
+    "price": {
+      "type": "number"
+    },
+    "stop_loss": {
+      "type": "number"
+    },
+    "tp1": {
+      "type": "number"
+    },
+    "tp2": {
+      "type": "number"
+    },
+    "tp3": {
+      "type": "number"
+    },
+    "estimated_risk": {
+      "type": "number"
+    },
+    "estimated_reward": {
+      "type": "number"
+    },
+    "rr_ratio": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "executed",
+        "cancelled",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "signal_id": {
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "executed_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "asset_symbol",
+    "order_type",
+    "side",
+    "quantity"
+  ]
+}
