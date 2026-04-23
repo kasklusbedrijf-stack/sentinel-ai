@@ -504,7 +504,7 @@ export default function AgentsPage() {
                   key={ag.name}
                   onClick={() => {
                     if (!activeConvId[ag.name]) startNewConversation(ag.name);
-                    else setSelectedAgent(ag.name);
+                    else loadConversation(ag.name, activeConvId[ag.name]);
                   }}
                   className={cn(
                     "w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all border",
