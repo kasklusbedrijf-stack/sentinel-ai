@@ -1,11 +1,12 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, TrendingUp, Briefcase, Zap, Settings,
-  Bell, Bot, ChevronRight, Menu, X, Shield, Activity
+  Bell, Bot, ChevronRight, Menu, X, Shield, Activity, Search
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import GlobalSearch from '@/components/GlobalSearch';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -23,9 +24,26 @@ const navItems = [
 export default function Layout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Global keyboard shortcut for search (Cmd+K or Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(!searchOpen);
+      }
+      if (e.key === 'Escape' && searchOpen) {
+        setSearchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchOpen]);
 
   return (
     <div className="flex h-screen bg-background font-inter overflow-hidden">
+      <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -109,6 +127,17 @@ export default function Layout() {
           </Button>
 
           <div className="flex-1" />
+
+          {/* Search icon */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSearchOpen(true)}
+            className="hidden sm:flex text-muted-foreground hover:text-foreground"
+            title="Search (Cmd+K)"
+          >
+            <Search className="w-4 h-4" />
+          </Button>
 
           {/* Capital Protection badge — text on sm+, icon-only on mobile */}
           <Badge variant="outline" className="hidden sm:inline-flex items-center gap-1 text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/5 px-2.5 py-1">

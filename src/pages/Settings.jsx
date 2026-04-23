@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Settings as SettingsIcon, User, Link2, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, User, Link2, Shield, Globe, DollarSign } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import { toast } from 'sonner';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
+  const { language, setLanguage, currency, setCurrency, languages, currencies } = useAppPreferences();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -35,6 +38,47 @@ export default function Settings() {
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Email</Label>
             <Input value={user?.email || ''} disabled className="bg-muted border-border" />
+          </div>
+        </div>
+      </div>
+
+      {/* Localization & Currency */}
+      <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Globe className="w-4 h-4 text-primary" /> Localization
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="language" className="text-xs text-muted-foreground">Language</Label>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger id="language" className="bg-card border-border">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                {Object.entries(languages).map(([code, { name, nativeName }]) => (
+                  <SelectItem key={code} value={code}>
+                    {nativeName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">Interface language preference</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="currency" className="text-xs text-muted-foreground">Display Currency</Label>
+            <Select value={currency} onValueChange={setCurrency}>
+              <SelectTrigger id="currency" className="bg-card border-border">
+                <SelectValue placeholder="Select currency" />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                {currencies.map(({ code, symbol, name }) => (
+                  <SelectItem key={code} value={code}>
+                    {symbol} {code} - {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">Applied to all portfolio values and prices</p>
           </div>
         </div>
       </div>
