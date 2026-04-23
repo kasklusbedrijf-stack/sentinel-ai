@@ -30,7 +30,7 @@ export default function Signals() {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [expanded, setExpanded] = useState(null);
-  const { formatCurrency } = useAppPreferences();
+  const { formatCurrency, t } = useAppPreferences();
 
   useEffect(() => {
     base44.entities.AISignal.list('-created_date', 100).then(d => { setSignals(d); setLoading(false); });
@@ -56,8 +56,8 @@ export default function Signals() {
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2"><Zap className="w-6 h-6 text-primary" /> AI Signals</h1>
-        <p className="text-muted-foreground text-sm mt-1">AI-generated trading signals with full explainability</p>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Zap className="w-6 h-6 text-primary" /> {t('signals_title')}</h1>
+        <p className="text-muted-foreground text-sm mt-1">{t('dashboard_active_signals')}</p>
       </div>
 
       {/* Filters */}

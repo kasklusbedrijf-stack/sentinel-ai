@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SignalBadge, PnlText } from '@/components/ui/signal-badge';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
+import { useAppPreferences as useT } from '@/lib/AppPreferencesContext';
 
 export default function Dashboard() {
   const [portfolio, setPortfolio] = useState([]);
@@ -16,7 +17,7 @@ export default function Dashboard() {
   const [alerts, setAlerts] = useState([]);
   const [riskSettings, setRiskSettings] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { formatCurrency } = useAppPreferences();
+  const { formatCurrency, t } = useAppPreferences();
 
   useEffect(() => {
     async function load() {
@@ -57,13 +58,13 @@ export default function Dashboard() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Portfolio overview & market intelligence</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('dashboard_title')}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{t('dashboard_portfolio_value')}</p>
         </div>
         {riskSettings?.emergency_stop_active && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/15 border border-red-500/30">
             <ShieldAlert className="w-4 h-4 text-red-400" />
-            <span className="text-sm font-semibold text-red-400">Emergency Stop Active</span>
+            <span className="text-sm font-semibold text-red-400">{t('dashboard_capital_protection')}</span>
           </div>
         )}
       </div>
@@ -71,16 +72,16 @@ export default function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatsCard
-          title="Portfolio Value"
+          title={t('dashboard_portfolio_value')}
           value={formatCurrency(totalValue)}
-          subtitle="Total holdings"
+          subtitle={t('portfolio_holdings')}
           icon={DollarSign}
           accent={true}
           trendValue={totalPnlPct}
           trend="all time"
         />
         <StatsCard
-          title="Unrealized PnL"
+          title={t('dashboard_unrealized_pnl')}
           value={`${totalPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalPnl))}`}
           subtitle={`${totalPnlPct.toFixed(2)}% overall`}
           icon={TrendingUp}
@@ -88,15 +89,15 @@ export default function Dashboard() {
           trend="unrealized"
         />
         <StatsCard
-          title="Open Positions"
+          title={t('dashboard_open_positions')}
           value={openPositionsCount}
           subtitle={`Max: ${riskSettings?.max_open_positions || 5}`}
           icon={Activity}
         />
         <StatsCard
-          title="Active Signals"
+          title={t('dashboard_active_signals')}
           value={activeBuySignals}
-          subtitle={`${unreadAlerts} unread alerts`}
+          subtitle={`${unreadAlerts} ${t('alerts_unread')}`}
           icon={Zap}
         />
       </div>
@@ -105,12 +106,12 @@ export default function Dashboard() {
       <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-primary/20 bg-primary/5">
         <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <span className="text-xs sm:text-sm font-semibold text-foreground">Trading Mode: </span>
+          <span className="text-xs sm:text-sm font-semibold text-foreground">{t('dashboard_trading_mode')}: </span>
           <span className="text-xs sm:text-sm text-primary font-mono uppercase">{riskSettings?.trading_mode || 'analysis_only'}</span>
         </div>
         <div className="flex-shrink-0">
           <Link to="/settings">
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7 px-2 sm:px-3">Change Mode</Button>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7 px-2 sm:px-3">{t('global_save')}</Button>
           </Link>
         </div>
       </div>
@@ -125,9 +126,9 @@ export default function Dashboard() {
       {positions.length > 0 && (
         <div className="rounded-xl border border-border bg-card p-4 sm:p-5 overflow-hidden">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Open Positions</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('dashboard_open_positions')}</h3>
             <Link to="/positions">
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">View all</Button>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">{t('global_save')}</Button>
             </Link>
           </div>
           {/* Mobile: compact card list */}
@@ -177,9 +178,9 @@ export default function Dashboard() {
       {portfolio.length > 0 && (
         <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-sm font-semibold text-foreground">Portfolio Holdings</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('portfolio_holdings')}</h3>
             <Link to="/portfolio">
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">Full Portfolio</Button>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">{t('global_save')}</Button>
             </Link>
           </div>
           <div className="space-y-1.5 sm:space-y-2">

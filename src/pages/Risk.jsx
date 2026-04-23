@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useState, useEffect } from 'react';
 import { Shield, AlertTriangle, Save, Power } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -40,6 +42,7 @@ export default function Risk() {
   const [settingsId, setSettingsId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { t } = useAppPreferences();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -90,8 +93,8 @@ export default function Risk() {
     <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
       <div className="space-y-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><Shield className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> Risk Settings</h1>
-          <p className="text-muted-foreground text-sm mt-1">Capital protection rules and trading constraints</p>
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><Shield className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> {t('risk_settings')}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t('dashboard_capital_protection')}</p>
         </div>
         <div className="flex gap-2">
           <Button

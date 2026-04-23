@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Bell, Check, CheckCheck, Filter } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import { cn } from '@/lib/utils';
 
 const severityConfig = {
@@ -18,6 +19,7 @@ export default function Alerts() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const { t } = useAppPreferences();
 
   useEffect(() => {
     base44.entities.Alert.list('-created_date', 100).then(d => { setAlerts(d); setLoading(false); });
@@ -54,8 +56,8 @@ export default function Alerts() {
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><Bell className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> Alerts</h1>
-          <p className="text-muted-foreground text-sm mt-1">{unreadCount} unread alerts</p>
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2"><Bell className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> {t('alerts_title')}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{unreadCount} {t('alerts_unread')}</p>
         </div>
         {unreadCount > 0 && (
           <Button size="sm" variant="outline" onClick={markAllRead} className="gap-2 flex-shrink-0">

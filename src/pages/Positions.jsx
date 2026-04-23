@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
+import { useAppPreferences as useT } from '@/lib/AppPreferencesContext';
 
 export default function Positions() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ asset_symbol: '', side: 'long', entry_price: '', quantity: '', stop_loss: '', tp1: '', tp2: '', tp3: '', risk_pct: '' });
   const queryClient = useQueryClient();
-  const { formatCurrency } = useAppPreferences();
+  const { formatCurrency, t } = useAppPreferences();
 
   const { data: positions = [], isLoading } = useQuery({
     queryKey: ['positions'],
@@ -35,18 +36,18 @@ export default function Positions() {
     <div className="space-y-5 p-4 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Open Positions</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Active trades with full risk management</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('positions_open')}</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">{t('dashboard_open_positions')}</p>
         </div>
         <Button onClick={() => setShowAdd(!showAdd)} size="sm" className="gap-1.5 flex-shrink-0">
-          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Manual Position</span><span className="sm:hidden">Add</span>
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t('positions_add_position')}</span><span className="sm:hidden">{t('global_save')}</span>
         </Button>
       </div>
 
       {/* Add form */}
       {showAdd && (
         <div className="bg-card border border-primary/30 rounded-xl p-4 sm:p-5">
-          <h3 className="font-semibold text-foreground mb-4">Add Manual Position</h3>
+          <h3 className="font-semibold text-foreground mb-4">{t('positions_add_position')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {[
               { key: 'asset_symbol', label: 'Symbol', placeholder: 'BTC', col: 'col-span-2 sm:col-span-1' },
@@ -87,21 +88,21 @@ export default function Positions() {
               position_value: parseFloat(form.quantity) * parseFloat(form.current_price || form.entry_price),
               status: 'open',
             })} disabled={!form.asset_symbol || !form.entry_price || !form.quantity} className="sm:w-auto w-full">
-              Add Position
+              {t('positions_add_position')}
             </Button>
-            <Button variant="outline" onClick={() => setShowAdd(false)} className="sm:w-auto w-full">Cancel</Button>
+            <Button variant="outline" onClick={() => setShowAdd(false)} className="sm:w-auto w-full">{t('global_cancel')}</Button>
           </div>
         </div>
       )}
 
       {/* Open positions */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Open ({open.length})</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('positions_open')} ({open.length})</h2>
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading positions...</div>
+          <div className="text-center py-8 text-muted-foreground">{t('global_save')}...</div>
         ) : open.length === 0 ? (
           <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
-            No open positions. Use the Trade Planner agent to create a trade plan.
+            {t('dashboard_open_positions')}
           </div>
         ) : (
           open.map((p) => {
@@ -175,7 +176,7 @@ export default function Positions() {
       {/* Closed */}
       {closed.length > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Closed ({closed.length})</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('positions_closed')} ({closed.length})</h2>
           {closed.map((p) => (
             <div key={p.id} className="bg-card border border-border/50 rounded-xl p-4 opacity-60">
               <div className="flex items-center justify-between">

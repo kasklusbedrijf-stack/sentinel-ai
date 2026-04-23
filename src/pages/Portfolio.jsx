@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
+import { useAppPreferences as useT } from '@/lib/AppPreferencesContext';
 
 export default function Portfolio() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ asset_symbol: '', asset_name: '', quantity: '', avg_buy_price: '', category: '' });
   const queryClient = useQueryClient();
-  const { formatCurrency } = useAppPreferences();
+  const { formatCurrency, t } = useAppPreferences();
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['portfolio'],
@@ -36,20 +37,20 @@ export default function Portfolio() {
     <div className="space-y-5 p-4 sm:p-6">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Portfolio</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Your holdings and performance</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('portfolio_holdings')}</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">{t('portfolio_total_value')}</p>
         </div>
         <Button onClick={() => setShowAdd(!showAdd)} size="sm" className="gap-1.5 flex-shrink-0">
-          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Holding</span><span className="sm:hidden">Add</span>
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t('portfolio_add_holding')}</span><span className="sm:hidden">{t('global_save')}</span>
         </Button>
       </div>
 
       {/* Summary Row */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Total Value', value: formatCurrency(totalValue), icon: DollarSign },
-          { label: 'Unrealized PnL', value: `${totalPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalPnl))}`, icon: TrendingUp, positive: totalPnl >= 0 },
-          { label: 'Realized PnL', value: `${totalRealized >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalRealized))}`, icon: TrendingUp, positive: totalRealized >= 0 },
+          { label: t('portfolio_total_value'), value: formatCurrency(totalValue), icon: DollarSign },
+          { label: t('portfolio_unrealized_pnl'), value: `${totalPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalPnl))}`, icon: TrendingUp, positive: totalPnl >= 0 },
+          { label: t('portfolio_realized_pnl'), value: `${totalRealized >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalRealized))}`, icon: TrendingUp, positive: totalRealized >= 0 },
         ].map((s) => (
           <div key={s.label} className="bg-card border border-border rounded-xl p-3 sm:p-5">
             <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">{s.label}</p>
@@ -61,7 +62,7 @@ export default function Portfolio() {
       {/* Add Form */}
       {showAdd && (
         <div className="bg-card border border-primary/30 rounded-xl p-4 sm:p-5">
-          <h3 className="font-semibold text-foreground mb-3 sm:mb-4">Add Holding</h3>
+          <h3 className="font-semibold text-foreground mb-3 sm:mb-4">{t('portfolio_add_holding')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {[
               { key: 'asset_symbol', placeholder: 'BTC', label: 'Symbol' },
@@ -92,19 +93,19 @@ export default function Portfolio() {
               current_value: parseFloat(form.quantity) * parseFloat(form.current_price || form.avg_buy_price || 0),
               unrealized_pnl: (parseFloat(form.current_price || form.avg_buy_price) - parseFloat(form.avg_buy_price)) * parseFloat(form.quantity),
             })} disabled={!form.asset_symbol || !form.quantity} className="sm:w-auto w-full">
-              Add Holding
+              {t('portfolio_add_holding')}
             </Button>
-            <Button variant="outline" onClick={() => setShowAdd(false)} className="sm:w-auto w-full">Cancel</Button>
+            <Button variant="outline" onClick={() => setShowAdd(false)} className="sm:w-auto w-full">{t('global_cancel')}</Button>
           </div>
         </div>
       )}
 
       {/* Mobile cards / Desktop table */}
       {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Loading portfolio...</div>
+        <div className="text-center py-12 text-muted-foreground">{t('global_save')}...</div>
       ) : assets.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-10 text-center text-muted-foreground text-sm">
-          No holdings yet. Add your first asset above.
+          {t('portfolio_add_holding')}
         </div>
       ) : (
         <>

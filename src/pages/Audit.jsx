@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { FileText, Info, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ const severityColors = {
 };
 
 export default function Audit() {
+  const { t } = useAppPreferences();
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ['audit-logs'],
     queryFn: () => base44.entities.AuditLog.list('-created_date', 100),
@@ -28,9 +30,9 @@ export default function Audit() {
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-[1600px] mx-auto">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
-          <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> Audit Log
+          <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> {t('audit_log')}
         </h1>
-        <p className="text-sm text-muted-foreground mt-0.5 sm:mt-1">Complete record of all system actions and events</p>
+        <p className="text-sm text-muted-foreground mt-0.5 sm:mt-1">{t('dashboard_capital_protection')}</p>
       </div>
 
       {/* Mobile cards */}
