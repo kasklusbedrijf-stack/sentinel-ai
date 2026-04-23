@@ -93,30 +93,28 @@ export default function Alerts() {
           return (
             <div
               key={alert.id}
-              className={cn("flex items-start gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border transition-all", sev.color, !alert.is_read && "ring-1 ring-primary/20")}
+              className={cn("flex items-start gap-3 sm:gap-4 p-4 sm:p-4 rounded-xl border transition-all", sev.color, !alert.is_read && "ring-1 ring-primary/20")}
             >
-              <div className="text-xl sm:text-2xl flex-shrink-0 mt-0.5">{typeIcons[alert.type] || '🔔'}</div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-semibold text-sm leading-snug">{alert.title}</span>
-                  {!alert.is_read && (
-                    <button onClick={() => markRead(alert.id)} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors flex-shrink-0 -mt-0.5 sm:hidden">
-                      <Check className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+              {/* Left icon */}
+              <div className="text-xl sm:text-2xl flex-shrink-0 mt-0.5 leading-none">{typeIcons[alert.type] || '🔔'}</div>
+
+              {/* Body */}
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <span className="font-semibold text-sm leading-snug block">{alert.title}</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full border", sev.badge)}>{alert.severity}</span>
                   <span className="text-[10px] font-mono text-muted-foreground border border-border px-2 py-0.5 rounded-full">{alert.type}</span>
                   {alert.asset_symbol && <span className="text-[10px] font-mono font-bold text-primary">{alert.asset_symbol}</span>}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1.5">{alert.message}</p>
-                <div className="text-xs text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground leading-relaxed">{alert.message}</p>
+                <div className="text-xs text-muted-foreground">
                   {new Date(alert.created_date).toLocaleString()}
                 </div>
               </div>
+
+              {/* Right check — always outside the body column */}
               {!alert.is_read && (
-                <button onClick={() => markRead(alert.id)} className="hidden sm:block p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors flex-shrink-0">
+                <button onClick={() => markRead(alert.id)} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors flex-shrink-0 mt-0.5">
                   <Check className="w-4 h-4" />
                 </button>
               )}
