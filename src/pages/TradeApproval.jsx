@@ -13,6 +13,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const [executionMode, setExecutionMode] = useState('validate'); // 'validate' or 'live'
 
   useEffect(() => {
     const loadTrade = async () => {
@@ -43,10 +44,20 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
       });
 
       if (result.data.success) {
-        setTrade(prev => ({ ...prev, status: 'sent', exchange_order_id: result.data.order_id }));
+        if (result.data.validation_mode) {
+          // Validation passed; show option to proceed to live
+          setExecutionMode('live');
+          alert('Validation passed! Click "Execute Live" to submit the actual order to Kraken.');
+        } else {
+          // Live order submitted
+          setTrade(prev => ({ ...prev, status: 'sent', exchange_order_id: result.data.order_id }));
+        }
+      } else {
+        alert(`Execution failed: ${result.data.error}`);
       }
     } catch (error) {
       console.error('Approval failed:', error);
+      alert(`Error: ${error.message}`);
     }
     setApproving(false);
   };
@@ -103,7 +114,8 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
         </div>
         {isExecuted && <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Sent</Badge>}
         {isRejected && <Badge className="bg-destructive/20 text-destructive border-destructive/30">Rejected</Badge>}
-        {isPending && <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Pending</Badge>}
+        {isPending && executionMode === 'validate' && <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Test Mode</Badge>}
+        {isPending && executionMode === 'live' && <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Live Mode</Badge>}
       </div>
 
       {/* Main Trade Summary */}
@@ -255,13 +267,23 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
           >
             {rejecting ? 'Rejecting…' : 'Reject Trade'}
           </Button>
-          <Button
-            onClick={handleApprove}
-            disabled={approving}
-            className="sm:flex-1 bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
-          >
-            {approving ? 'Approving…' : 'Approve & Execute'}
-          </Button>
+          {executionMode === 'validate' ? (
+            <Button
+              onClick={handleApprove}
+              disabled={approving}
+              className="sm:flex-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30"
+            >
+              {approving ? 'Validating…' : 'Validate (Test Mode)'}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleApprove}
+              disabled={approving}
+              className="sm:flex-1 bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
+            >
+              {approving ? 'Executing…' : 'Execute Live Order'}
+            </Button>
+          )}
         </div>
       )}
 

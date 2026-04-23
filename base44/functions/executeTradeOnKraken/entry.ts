@@ -26,11 +26,30 @@ Deno.serve(async (req) => {
 
     const trade = approvals[0];
 
+    // **IDEMPOTENCY CHECK**: Reject if this approval already has an associated exchange order
+    if (trade.exchange_order_id) {
+      return Response.json(
+        { error: 'This trade approval already has an active order', existing_order: trade.exchange_order_id },
+        { status: 409 }
+      );
+    }
+
     // Validate status
     if (trade.status !== 'approved') {
       return Response.json(
         { error: 'Trade must be approved before execution' },
         { status: 400 }
+      );
+    }
+
+    // **DUPLICATE ORDER GUARD**: Check if an ExchangeOrder already exists for this approval
+    const existingOrders = await base44.asServiceRole.entities.ExchangeOrder.filter({
+      trade_approval_id: trade_approval_id,
+    });
+    if (existingOrders && existingOrders.length > 0) {
+      return Response.json(
+        { error: 'Order already submitted for this trade approval', order_id: existingOrders[0].id },
+        { status: 409 }
       );
     }
 
@@ -116,17 +135,84 @@ Deno.serve(async (req) => {
       );
     }
 
+    // **BALANCE VALIDATION**: Fetch user balances and verify sufficient funds
+    const balanceCheckNonce = Date.now().toString();
+    const balanceApiPath = '/0/private/Balance';
+    const balancePostData = `nonce=${balanceCheckNonce}`;
+    
+    const balanceMessageHash = await crypto.subtle.digest(
+      'SHA-256',
+      encoder.encode(balanceApiPath + balancePostData)
+    );
+    
+    const balanceKey = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(krakenApiSecret),
+      { name: 'HMAC', hash: 'SHA-512' },
+      false,
+      ['sign']
+    );
+    
+    const balanceSignature = await crypto.subtle.sign('HMAC', balanceKey, balanceMessageHash);
+    const balanceSignatureHex = Array.from(new Uint8Array(balanceSignature))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    
+    let balanceResponse;
+    try {
+      const balanceResp = await fetch('https://api.kraken.com/0/private/Balance', {
+        method: 'POST',
+        headers: {
+          'API-Key': krakenApiKey,
+          'API-Sign': balanceSignatureHex,
+        },
+        body: balancePostData,
+      });
+      balanceResponse = await balanceResp.json();
+      
+      if (!balanceResp.ok || balanceResponse.error?.length > 0) {
+        return Response.json(
+          { error: 'Failed to fetch balance for validation', details: balanceResponse.error?.join(', ') },
+          { status: 400 }
+        );
+      }
+    } catch (balanceError) {
+      return Response.json(
+        { error: 'Balance check failed', details: balanceError.message },
+        { status: 500 }
+      );
+    }
+    
+    // Validate sufficient balance for the trade
+    const assetCode = trade.asset_symbol === 'BTC' ? 'XBT' : `Z${trade.asset_symbol}`;
+    const availableBalance = parseFloat(balanceResponse.result?.[assetCode] || 0);
+    const requiredAmount = parseFloat(trade.position_size_pct || 1) / 100;
+    
+    if (trade.direction === 'sell' && availableBalance < requiredAmount) {
+      await base44.asServiceRole.entities.TradeApproval.update(trade_approval_id, {
+        status: 'rejected',
+        rejection_reason: `Insufficient balance: have ${availableBalance}, need ${requiredAmount}`,
+      });
+      return Response.json(
+        { success: false, error: `Insufficient ${trade.asset_symbol} balance`, available: availableBalance, required: requiredAmount },
+        { status: 400 }
+      );
+    }
+
     // Prepare Kraken order request
     const krakenPair = `${trade.asset_symbol.toUpperCase()}USD`;
     const orderType = trade.direction === 'buy' ? 'buy' : 'sell';
-    const nonce = Date.now().toString();
+    const orderNonce = Date.now().toString();
     
     // Calculate position size (simplified: use 10% of portfolio per trade)
     const quantity = parseFloat(trade.position_size_pct || 1) / 100;
 
+    // **EXECUTION MODE**: Set to 'false' for LIVE, 'true' for validation-only test
+    const VALIDATION_MODE = true; // CHANGE TO FALSE FOR LIVE EXECUTION
+
     // Build Kraken API request
     const krakenPayload = new URLSearchParams({
-      nonce: nonce,
+      nonce: orderNonce,
       ordertype: 'limit',
       type: orderType,
       pair: krakenPair,
@@ -137,15 +223,13 @@ Deno.serve(async (req) => {
       closetm: '0',
       deadline: '',
       userref: trade_approval_id,
-      validate: 'true', // Validate first; change to 'false' for live execution
+      validate: VALIDATION_MODE ? 'true' : 'false',
     });
 
     // Sign request with HMAC-SHA512
     const apiPath = '/0/private/AddOrder';
     const postData = krakenPayload.toString();
     
-    const encoder = new TextEncoder();
-    const pathHash = await crypto.subtle.digest('SHA-256', encoder.encode(postData));
     const messageHash = await crypto.subtle.digest(
       'SHA-256',
       encoder.encode(apiPath + postData)
@@ -182,12 +266,21 @@ Deno.serve(async (req) => {
 
       if (!response.ok || krakenResponse.error?.length > 0) {
         const errorMsg = krakenResponse.error?.join(', ') || 'Unknown Kraken API error';
-        await base44.asServiceRole.entities.TradeApproval.update(trade_approval_id, {
-          status: 'failed',
-          rejection_reason: `Kraken API error: ${errorMsg}`,
-        });
+        
+        // Only reject approval if LIVE mode; validation mode just returns error
+        if (!VALIDATION_MODE) {
+          await base44.asServiceRole.entities.TradeApproval.update(trade_approval_id, {
+            status: 'failed',
+            rejection_reason: `Kraken API error: ${errorMsg}`,
+          });
+        }
+        
         return Response.json(
-          { success: false, error: `Kraken rejected order: ${errorMsg}` },
+          { 
+            success: false, 
+            error: `Kraken ${VALIDATION_MODE ? 'validation' : 'order'} failed: ${errorMsg}`,
+            validation_mode: VALIDATION_MODE,
+          },
           { status: 400 }
         );
       }
@@ -197,17 +290,37 @@ Deno.serve(async (req) => {
         krakenOrderId = krakenResponse.result.txid[0];
       }
     } catch (krakenError) {
-      await base44.asServiceRole.entities.TradeApproval.update(trade_approval_id, {
-        status: 'failed',
-        rejection_reason: `Kraken connection error: ${krakenError.message}`,
-      });
+      if (!VALIDATION_MODE) {
+        await base44.asServiceRole.entities.TradeApproval.update(trade_approval_id, {
+          status: 'failed',
+          rejection_reason: `Kraken connection error: ${krakenError.message}`,
+        });
+      }
       return Response.json(
-        { success: false, error: `Failed to reach Kraken: ${krakenError.message}` },
+        { 
+          success: false, 
+          error: `Failed to reach Kraken: ${krakenError.message}`,
+          validation_mode: VALIDATION_MODE,
+        },
         { status: 500 }
       );
     }
 
-    // Create order record in database
+    // **LIVE EXECUTION ONLY**: Create order record in database if not in validation mode
+    if (VALIDATION_MODE) {
+      return Response.json({
+        success: true,
+        validation_mode: true,
+        message: 'Order validation passed. Change VALIDATION_MODE to false for live execution.',
+        test_data: {
+          pair: krakenPair,
+          direction: orderType,
+          price: trade.entry_price,
+          volume: quantity,
+        },
+      });
+    }
+
     const order = await base44.asServiceRole.entities.ExchangeOrder.create({
       trade_approval_id: trade_approval_id,
       asset_symbol: trade.asset_symbol,
