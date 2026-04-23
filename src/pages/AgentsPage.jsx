@@ -211,23 +211,27 @@ function ImageLightbox({ src, onClose }) {
   );
 }
 
-// Pending image attachment preview strip (above input)
-function AttachmentPreview({ imageDataUrl, onRemove }) {
-  if (!imageDataUrl) return null;
+// Pending images attachment preview strip (above input) - supports up to 5 images
+function AttachmentPreview({ imageDUrls, onRemove }) {
+  if (!imageDUrls || imageDUrls.length === 0) return null;
   return (
     <div className="px-3 sm:px-4 pt-2 pb-0">
-      <div className="relative inline-block">
-        <img
-          src={imageDataUrl}
-          alt="Attached chart"
-          className="h-16 w-auto rounded-lg border border-border object-cover"
-        />
-        <button
-          onClick={onRemove}
-          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center shadow-md"
-        >
-          <X className="w-3 h-3 text-white" />
-        </button>
+      <div className="flex gap-2 flex-wrap">
+        {imageDUrls.map((url, idx) => (
+          <div key={idx} className="relative inline-block">
+            <img
+              src={url}
+              alt={`Attached chart ${idx + 1}`}
+              className="h-16 w-auto rounded-lg border border-border object-cover"
+            />
+            <button
+              onClick={() => onRemove(idx)}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
+            >
+              <X className="w-3 h-3 text-white" />
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -240,7 +244,7 @@ export default function AgentsPage() {
   const [messages, setMessages] = useState({});
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
-  const [pendingImage, setPendingImage] = useState(null); // base64 data URL
+  const [pendingImages, setPendingImages] = useState([]); // array of base64 data URLs (max 5)
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -254,30 +258,33 @@ export default function AgentsPage() {
     }
   }, [messages, selectedAgent]);
 
-  // Paste handler for chart screenshots
+  // Paste handler for chart screenshots - supports multiple images
   useEffect(() => {
     const handlePaste = (e) => {
       if (!selectedAgent) return;
       const items = Array.from(e.clipboardData?.items || []);
-      const imageItem = items.find(item => item.type.startsWith('image/'));
-      if (imageItem) {
+      const imageItems = items.filter(item => item.type.startsWith('image/'));
+      imageItems.forEach(imageItem => {
         const file = imageItem.getAsFile();
         if (file) readImageFile(file);
-      }
+      });
     };
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
   }, [selectedAgent]);
 
   const readImageFile = (file) => {
+    if (pendingImages.length >= 5) return; // max 5 images
     const reader = new FileReader();
-    reader.onload = (e) => setPendingImage(e.target.result);
+    reader.onload = (e) => {
+      setPendingImages(prev => [...prev, e.target.result]);
+    };
     reader.readAsDataURL(file);
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) readImageFile(file);
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => readImageFile(file));
     e.target.value = '';
   };
 
@@ -309,8 +316,8 @@ export default function AgentsPage() {
 
   const sendMessage = async () => {
     const hasText = input.trim();
-    const hasImage = !!pendingImage;
-    if ((!hasText && !hasImage) || !selectedAgent || sending) return;
+    const hasImages = pendingImages.length > 0;
+    if ((!hasText && !hasImages) || !selectedAgent || sending) return;
 
     const agentName = selectedAgent;
     let convId = activeConvId[agentName];
@@ -323,17 +330,17 @@ export default function AgentsPage() {
     const conv = { id: convId };
     setSending(true);
     const text = hasText ? input.trim() : '';
-    const imageToSend = pendingImage;
+    const imagesToSend = [...pendingImages];
     setInput('');
-    setPendingImage(null);
+    setPendingImages([]);
 
-    // Build optimistic message with local preview
+    // Build optimistic message with local previews (persistent)
     const optimisticMsg = {
       role: 'user',
-      content: hasImage
-        ? (text || 'Analyze this chart screenshot.')
+      content: hasImages
+        ? (text || 'Analyze these chart screenshots.')
         : text,
-      _localImagePreview: imageToSend, // local only, not persisted
+      _localImagePreviews: imagesToSend, // local only, not persisted, but displayed
     };
 
     setMessages(prev => {
@@ -341,19 +348,19 @@ export default function AgentsPage() {
       return { ...prev, [key]: [...(prev[key] || []), optimisticMsg] };
     });
 
-    // If image: upload it and send with file_urls + chart-specific system prompt prepended
-    if (hasImage) {
-      const fileUrl = await uploadImage(imageToSend);
+    // If images: upload each and send with file_urls + chart-specific system prompt prepended
+    if (hasImages) {
+      const fileUrls = await Promise.all(imagesToSend.map(img => uploadImage(img)));
       const ag = AGENTS.find(a => a.name === agentName);
       const chartInstruction = ag?.chartPrompt || '';
       const messageContent = chartInstruction
-        ? `${chartInstruction}\n\nUser note: ${text || 'Please analyze this chart screenshot.'}`
-        : (text || 'Please analyze this chart screenshot.');
+        ? `${chartInstruction}\n\nUser note: ${text || 'Please analyze these chart screenshots.'}`
+        : (text || 'Please analyze these chart screenshots.');
 
       await base44.agents.addMessage(conv, {
         role: 'user',
         content: messageContent,
-        file_urls: [fileUrl],
+        file_urls: fileUrls,
       });
     } else {
       await base44.agents.addMessage(conv, { role: 'user', content: text });
@@ -370,7 +377,7 @@ export default function AgentsPage() {
     ? messages[`${selectedAgent}:${activeConvId[selectedAgent]}`] || []
     : [];
 
-  const canSend = (input.trim() || pendingImage) && !sending;
+  const canSend = (input.trim() || pendingImages.length > 0) && !sending;
 
   return (
     <>
@@ -503,34 +510,43 @@ export default function AgentsPage() {
                 )}
 
                 {currentMessages.map((msg, i) => (
-                  <div key={i} className={cn("flex gap-2.5 sm:gap-3", msg.role === 'user' ? 'justify-end' : 'justify-start')}>
-                    {msg.role !== 'user' && (
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-                      </div>
-                    )}
-                    <div className={cn(
-                      "max-w-[88%] sm:max-w-[80%] rounded-2xl text-sm min-w-0",
-                      msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-card border border-border'
-                    )}>
-                      {/* Attached image preview in bubble */}
-                      {msg._localImagePreview && (
-                        <div className="px-3 pt-3 pb-1">
-                          <button
-                            onClick={() => setLightboxSrc(msg._localImagePreview)}
-                            className="relative group block rounded-lg overflow-hidden"
-                          >
-                            <img
-                              src={msg._localImagePreview}
-                              alt="Chart screenshot"
-                              className="max-h-48 w-auto rounded-lg object-cover border border-white/10"
-                            />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                              <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                          </button>
-                        </div>
-                      )}
+                   <div key={i} className={cn("flex gap-2.5 sm:gap-3", msg.role === 'user' ? 'justify-end' : 'justify-start')}>
+                     {msg.role !== 'user' && (
+                       <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                         <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                       </div>
+                     )}
+                     <div className={cn(
+                       "max-w-[88%] sm:max-w-[80%] rounded-2xl text-sm min-w-0",
+                       msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-card border border-border'
+                     )}>
+                       {/* Attached images preview in bubble (persistent) */}
+                       {(msg._localImagePreviews && msg._localImagePreviews.length > 0) && (
+                         <div className={cn(
+                           "px-3 pt-3 pb-2 flex gap-2 flex-wrap",
+                           msg._localImagePreviews.length === 1 ? "justify-center" : ""
+                         )}>
+                           {msg._localImagePreviews.map((imgUrl, imgIdx) => (
+                             <button
+                               key={imgIdx}
+                               onClick={() => setLightboxSrc(imgUrl)}
+                               className="relative group block rounded-lg overflow-hidden"
+                             >
+                               <img
+                                 src={imgUrl}
+                                 alt={`Chart screenshot ${imgIdx + 1}`}
+                                 className={cn(
+                                   "rounded-lg object-cover border border-white/10",
+                                   msg._localImagePreviews.length === 1 ? "max-h-48 w-auto" : "max-h-40 w-auto"
+                                 )}
+                               />
+                               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                 <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                               </div>
+                             </button>
+                           ))}
+                         </div>
+                       )}
                       <div className="px-3.5 sm:px-4 py-2.5 sm:py-3">
                         {msg.role === 'user' ? (
                           <p className="leading-relaxed break-words text-sm">{msg.content?.replace(/^You are .+?screenshot alone\.\n\nUser note: /s, '')}</p>
@@ -583,19 +599,20 @@ export default function AgentsPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Hidden file input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-              />
+              {/* Hidden file input - accept multiple files */}
+               <input
+                 ref={fileInputRef}
+                 type="file"
+                 accept="image/*"
+                 multiple
+                 className="hidden"
+                 onChange={handleFileChange}
+               />
 
-              {/* Pending attachment preview */}
+              {/* Pending attachments preview */}
               <AttachmentPreview
-                imageDataUrl={pendingImage}
-                onRemove={() => setPendingImage(null)}
+                imageDUrls={pendingImages}
+                onRemove={(idx) => setPendingImages(prev => prev.filter((_, i) => i !== idx))}
               />
 
               {/* Input bar */}
@@ -619,7 +636,7 @@ export default function AgentsPage() {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={pendingImage ? 'Add a note or send image…' : `Ask ${agent?.label}…`}
+                    placeholder={pendingImages.length > 0 ? 'Add a note or send images…' : `Ask ${agent?.label}…`}
                     className="flex-1 bg-secondary border-border text-sm h-10"
                     disabled={sending}
                   />
@@ -627,7 +644,7 @@ export default function AgentsPage() {
                     onClick={sendMessage}
                     disabled={!canSend}
                     size="icon"
-                    className={cn("flex-shrink-0 w-10 h-10", pendingImage && "bg-blue-500 hover:bg-blue-600")}
+                    className={cn("flex-shrink-0 w-10 h-10", pendingImages.length > 0 && "bg-blue-500 hover:bg-blue-600")}
                   >
                     {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
