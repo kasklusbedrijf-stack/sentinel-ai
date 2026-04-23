@@ -277,13 +277,7 @@ export default function AgentsPage() {
     loadConversations();
   }, []);
 
-  // Auto-select first agent with previous conversations, or allow manual selection
-  useEffect(() => {
-    if (!selectedAgent && Object.keys(conversations).length > 0) {
-      const agentWithConvs = AGENTS.find(a => conversations[a.name]?.length > 0);
-      if (agentWithConvs) setSelectedAgent(agentWithConvs.name);
-    }
-  }, [conversations, selectedAgent]);
+
 
   useEffect(() => {
     if (messagesEndRef.current) {
