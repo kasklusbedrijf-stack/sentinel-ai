@@ -133,16 +133,21 @@ export default function AgentsPage() {
                   if (!activeConvId[ag.name]) startNewConversation(ag.name);
                   else setSelectedAgent(ag.name);
                 }}
-                className={cn("w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-colors",
-                  isActive ? 'bg-primary/10 border border-primary/20' : 'hover:bg-secondary/50 border border-transparent')}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all border",
+                  isActive
+                    ? 'bg-primary/10 border-primary/25 shadow-sm'
+                    : 'bg-card border-border hover:border-border hover:bg-accent/40'
+                )}
               >
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border flex-shrink-0", ag.color)}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm leading-tight">{ag.label}</div>
+                  <div className="font-semibold text-sm leading-tight text-foreground">{ag.label}</div>
                   <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-snug">{ag.description.split('.')[0]}</div>
                 </div>
+                <ChevronRight className={cn("w-4 h-4 flex-shrink-0 transition-colors", isActive ? 'text-primary' : 'text-muted-foreground/50')} />
               </button>
             );
           })}
@@ -189,7 +194,7 @@ export default function AgentsPage() {
               {(() => { const ag = AGENTS.find(a => a.name === selectedAgent); const Icon = ag?.icon; return Icon ? <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center border flex-shrink-0", ag.color)}><Icon className="w-4 h-4" /></div> : null; })()}
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm leading-tight">{agent?.label}</div>
-                <div className="text-xs text-muted-foreground truncate hidden sm:block">{agent?.description}</div>
+                <div className="text-xs text-muted-foreground truncate">{agent?.description.split('.')[0]}</div>
               </div>
               <Button size="sm" variant="outline" onClick={() => startNewConversation(selectedAgent)} className="gap-1.5 flex-shrink-0 text-xs h-8 px-2.5">
                 <Plus className="w-3 h-3" /> New
