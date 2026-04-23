@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Settings as SettingsIcon, User, Link2, Shield, Globe, DollarSign } from 'lucide-react';
+import { Settings as SettingsIcon, User, Link2, Shield, Globe, DollarSign, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -10,14 +11,50 @@ import { toast } from 'sonner';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
-  const { language, setLanguage, currency, setCurrency, languages, currencies } = useAppPreferences();
+  const { language, setLanguage, currency, setCurrency, languages, currencies, applyPreferences, hasUnsavedChanges } = useAppPreferences();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Warn user before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    const handleNavigation = (e) => {
+      if (hasUnsavedChanges) {
+        const confirmLeave = window.confirm(
+          'You have unsaved changes to your preferences. Leave without saving?'
+        );
+        if (!confirmLeave) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handleNavigation);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handleNavigation);
+    };
+  }, [hasUnsavedChanges]);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  const handleSavePreferences = () => {
+    applyPreferences();
+    toast.success('Preferences saved');
+  };
+
   return (
-    <div className="p-6 space-y-6 max-w-3xl mx-auto">
+    <div className="p-6 space-y-6 max-w-3xl mx-auto pb-32 sm:pb-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <SettingsIcon className="w-6 h-6 text-primary" /> Settings
@@ -81,6 +118,17 @@ export default function Settings() {
             <p className="text-xs text-muted-foreground mt-1">Applied to all portfolio values and prices</p>
           </div>
         </div>
+
+        {/* Unsaved changes notice */}
+        {hasUnsavedChanges && (
+          <div className="mt-4 p-3 rounded-lg bg-yellow-400/5 border border-yellow-400/20 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-xs font-medium text-yellow-400">Unsaved changes</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Your language and currency preferences haven't been saved yet.</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Exchange Connection Placeholder */}
@@ -118,6 +166,30 @@ export default function Settings() {
           Log Out
         </Button>
       </div>
+
+      {/* Save changes button — fixed on mobile, inline on desktop */}
+      {hasUnsavedChanges && (
+        <div className="fixed bottom-0 left-0 right-0 sm:static border-t border-border bg-card/95 backdrop-blur-sm p-4 sm:p-0 sm:bg-transparent sm:border-0">
+          <div className="max-w-3xl mx-auto flex gap-3 sm:gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 sm:flex-none"
+              onClick={() => {
+                setLanguage(localStorage.getItem('app_language') || 'en');
+                setCurrency(localStorage.getItem('app_currency') || 'USD');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSavePreferences}
+              className="flex-1 sm:flex-none bg-primary hover:bg-primary/90"
+            >
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

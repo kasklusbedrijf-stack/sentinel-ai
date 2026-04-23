@@ -23,6 +23,8 @@ const CURRENCIES = [
 export const AppPreferencesProvider = ({ children }) => {
   const [language, setLanguage] = useState('en');
   const [currency, setCurrency] = useState('USD');
+  const [savedLanguage, setSavedLanguage] = useState('en');
+  const [savedCurrency, setSavedCurrency] = useState('USD');
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -30,16 +32,19 @@ export const AppPreferencesProvider = ({ children }) => {
     const savedCurr = localStorage.getItem('app_currency') || 'USD';
     setLanguage(savedLang);
     setCurrency(savedCurr);
+    setSavedLanguage(savedLang);
+    setSavedCurrency(savedCurr);
   }, []);
 
-  // Save preferences to localStorage whenever they change
-  useEffect(() => {
+  // Commit preferences to localStorage (called explicitly by Settings page)
+  const applyPreferences = () => {
     localStorage.setItem('app_language', language);
-  }, [language]);
-
-  useEffect(() => {
     localStorage.setItem('app_currency', currency);
-  }, [currency]);
+    setSavedLanguage(language);
+    setSavedCurrency(currency);
+  };
+
+  const hasUnsavedChanges = language !== savedLanguage || currency !== savedCurrency;
 
   const getCurrencySymbol = () => {
     const curr = CURRENCIES.find(c => c.code === currency);
@@ -62,6 +67,8 @@ export const AppPreferencesProvider = ({ children }) => {
       currencies: CURRENCIES,
       getCurrencySymbol,
       formatCurrency,
+      applyPreferences,
+      hasUnsavedChanges,
     }}>
       {children}
     </AppPreferencesContext.Provider>
