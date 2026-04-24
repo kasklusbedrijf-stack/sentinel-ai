@@ -1,45 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Eye, BarChart2, Shield, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const STEPS = [
-  {
-    id: 'market_scan',
-    label: 'Market Watcher',
-    sublabel: 'Scanning assets & identifying setups…',
-    icon: Eye,
-    color: 'text-blue-400',
-    border: 'border-blue-400/30',
-    bg: 'bg-blue-400/10',
-  },
-  {
-    id: 'trade_planning',
-    label: 'Trade Planner',
-    sublabel: 'Building structured trade plans…',
-    icon: BarChart2,
-    color: 'text-green-400',
-    border: 'border-green-400/30',
-    bg: 'bg-green-400/10',
-  },
-  {
-    id: 'risk_review',
-    label: 'Risk Manager',
-    sublabel: 'Reviewing plans against risk rules…',
-    icon: Shield,
-    color: 'text-yellow-400',
-    border: 'border-yellow-400/30',
-    bg: 'bg-yellow-400/10',
-  },
-  {
-    id: 'done',
-    label: 'Complete',
-    sublabel: 'Pipeline finished',
-    icon: CheckCircle2,
-    color: 'text-primary',
-    border: 'border-primary/30',
-    bg: 'bg-primary/10',
-  },
-];
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 
 const STEP_ORDER = ['market_scan', 'trade_planning', 'risk_review', 'done'];
 
@@ -47,34 +9,26 @@ function stepIndex(stepId) {
   return STEP_ORDER.indexOf(stepId);
 }
 
-// Rotating status messages per step
-const MESSAGES = {
-  market_scan: [
-    'Analyzing technical indicators…',
-    'Checking RSI and MACD signals…',
-    'Scanning trend strength across assets…',
-    'Identifying top setups by quality score…',
-  ],
-  trade_planning: [
-    'Calculating entry levels…',
-    'Setting stop-loss based on structure…',
-    'Defining take-profit targets…',
-    'Sizing positions within risk limits…',
-  ],
-  risk_review: [
-    'Checking confidence thresholds…',
-    'Verifying R:R ratios…',
-    'Applying exposure limits…',
-    'Filtering by safety rules…',
-  ],
-};
-
 export default function PipelineProgress({ currentStep }) {
+  const { t } = useAppPreferences();
   const [msgIdx, setMsgIdx] = useState(0);
 
+  const STEPS = [
+    { id: 'market_scan',   label: t('pipeline_scan_label'), sublabel: t('pipeline_scan_sublabel'), icon: Eye,          color: 'text-blue-400',   border: 'border-blue-400/30',   bg: 'bg-blue-400/10' },
+    { id: 'trade_planning',label: t('pipeline_plan_label'), sublabel: t('pipeline_plan_sublabel'), icon: BarChart2,     color: 'text-green-400',  border: 'border-green-400/30',  bg: 'bg-green-400/10' },
+    { id: 'risk_review',   label: t('pipeline_risk_label'), sublabel: t('pipeline_risk_sublabel'), icon: Shield,        color: 'text-yellow-400', border: 'border-yellow-400/30', bg: 'bg-yellow-400/10' },
+    { id: 'done',          label: t('pipeline_done_label'), sublabel: t('pipeline_done_sublabel'), icon: CheckCircle2,  color: 'text-primary',    border: 'border-primary/30',    bg: 'bg-primary/10' },
+  ];
+
+  const MESSAGES = {
+    market_scan:    [t('pipeline_msg_scan_1'), t('pipeline_msg_scan_2'), t('pipeline_msg_scan_3'), t('pipeline_msg_scan_4')],
+    trade_planning: [t('pipeline_msg_plan_1'), t('pipeline_msg_plan_2'), t('pipeline_msg_plan_3'), t('pipeline_msg_plan_4')],
+    risk_review:    [t('pipeline_msg_risk_1'), t('pipeline_msg_risk_2'), t('pipeline_msg_risk_3'), t('pipeline_msg_risk_4')],
+  };
+
   useEffect(() => {
-    const t = setInterval(() => setMsgIdx(i => i + 1), 2800);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setMsgIdx(i => i + 1), 2800);
+    return () => clearInterval(timer);
   }, [currentStep]);
 
   const activeIdx = stepIndex(currentStep || 'market_scan');
@@ -83,19 +37,17 @@ export default function PipelineProgress({ currentStep }) {
 
   return (
     <div className="space-y-4">
-      {/* Main status card */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 text-center space-y-3">
         <div className="flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
         <div>
-          <div className="text-sm font-semibold text-foreground">AI Scout is running</div>
+          <div className="text-sm font-semibold text-foreground">{t('pipeline_running')}</div>
           <div className="text-xs text-muted-foreground mt-1 h-4 transition-all">{currentMsg}</div>
         </div>
-        <div className="text-xs text-muted-foreground">This takes 30–90 seconds. Stay on this page.</div>
+        <div className="text-xs text-muted-foreground">{t('pipeline_stay_on_page')}</div>
       </div>
 
-      {/* Step timeline */}
       <div className="space-y-3">
         {STEPS.map((step, i) => {
           const isDone = i < activeIdx;
@@ -130,7 +82,7 @@ export default function PipelineProgress({ currentStep }) {
                   {step.label}
                 </div>
                 <div className="text-xs text-muted-foreground truncate">
-                  {isDone ? 'Completed' : isActive ? step.sublabel : 'Waiting…'}
+                  {isDone ? t('pipeline_step_done') : isActive ? step.sublabel : t('pipeline_step_waiting')}
                 </div>
               </div>
               {isDone && <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />}

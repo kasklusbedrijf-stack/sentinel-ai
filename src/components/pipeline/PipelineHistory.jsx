@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { CheckCircle2, XCircle, Clock, ChevronRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAppPreferences } from '@/lib/AppPreferencesContext';
 
 function parseJSON(str) {
   if (!str) return null;
@@ -9,6 +10,7 @@ function parseJSON(str) {
 }
 
 export default function PipelineHistory({ onSelect }) {
+  const { t } = useAppPreferences();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +31,7 @@ export default function PipelineHistory({ onSelect }) {
 
   if (records.length === 0) {
     return (
-      <div className="text-center py-16 text-muted-foreground text-sm">No pipeline runs yet.</div>
+      <div className="text-center py-16 text-muted-foreground text-sm">{t('pipeline_history_empty')}</div>
     );
   }
 
@@ -63,10 +65,10 @@ export default function PipelineHistory({ onSelect }) {
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">
                 {rec.status === 'completed'
-                  ? `${approved} approved · ${blocked} blocked`
+                  ? `${approved} ${t('pipeline_history_approved')} · ${blocked} ${t('pipeline_history_blocked')}`
                   : rec.status === 'running'
-                  ? `Running — ${rec.step?.replace('_', ' ')}`
-                  : 'Failed'
+                  ? `${t('pipeline_history_running')} — ${rec.step?.replace('_', ' ')}`
+                  : t('pipeline_history_failed')
                 }
               </div>
             </div>
