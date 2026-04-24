@@ -1,0 +1,58 @@
+{
+  "name": "AgentPipeline",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "running",
+        "completed",
+        "failed"
+      ],
+      "default": "running",
+      "description": "Overall pipeline status"
+    },
+    "step": {
+      "type": "string",
+      "enum": [
+        "market_scan",
+        "trade_planning",
+        "risk_review",
+        "done"
+      ],
+      "default": "market_scan",
+      "description": "Current active step"
+    },
+    "market_scan_result": {
+      "type": "string",
+      "description": "JSON string: Market Watcher output \u2014 list of shortlisted setups"
+    },
+    "trade_plans_result": {
+      "type": "string",
+      "description": "JSON string: Trade Planner output \u2014 structured trade plans"
+    },
+    "risk_review_result": {
+      "type": "string",
+      "description": "JSON string: Risk Manager output \u2014 approved and blocked plans"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Error if pipeline failed"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "triggered_by": {
+      "type": "string",
+      "description": "User email who triggered the pipeline"
+    }
+  },
+  "required": [
+    "status"
+  ]
+}

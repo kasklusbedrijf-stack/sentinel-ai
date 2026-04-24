@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, TrendingUp, Briefcase, Zap, Settings,
-  Bell, Bot, ChevronRight, Menu, X, Shield, Activity, Search
+  Bell, Bot, ChevronRight, Menu, X, Shield, Activity, Search, Cpu
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ const getNavItems = (t) => [
   { path: '/signals', label: t('nav_signals'), icon: Zap },
   { path: '/positions', label: t('nav_positions'), icon: Activity },
   { path: '/agents', label: t('nav_agents'), icon: Bot },
+  { path: '/pipeline', label: 'AI Scout', icon: Cpu },
   { path: '/alerts', label: t('nav_alerts'), icon: Bell },
   { path: '/risk', label: t('nav_risk'), icon: Shield },
   { path: '/audit', label: t('nav_audit'), icon: Activity },

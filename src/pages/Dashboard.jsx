@@ -5,6 +5,7 @@ import StatsCard from '@/components/dashboard/StatsCard';
 import RecentSignals from '@/components/dashboard/RecentSignals';
 import RecentAlerts from '@/components/dashboard/RecentAlerts';
 import TradeApprovalWidget from '@/components/TradeApprovalWidget';
+import AiScoutButton from '@/components/AiScoutButton';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SignalBadge, PnlText } from '@/components/ui/signal-badge';
@@ -115,6 +116,9 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
+
+      {/* AI Scout — multi-agent pipeline trigger */}
+      <AiScoutButton />
 
       {/* Pending Trade Approvals */}
       <TradeApprovalWidget />

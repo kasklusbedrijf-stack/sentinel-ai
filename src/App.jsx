@@ -21,6 +21,7 @@ import Risk from '@/pages/Risk';
 import Audit from '@/pages/Audit';
 import Settings from '@/pages/Settings';
 import TradeApproval from '@/pages/TradeApproval';
+import Pipeline from '@/pages/Pipeline';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
         <Route path="/settings" element={<Settings />} />
         <Route path="/trade-approval/:id" element={<TradeApproval />} />
         <Route path="/trade-approval" element={<TradeApproval />} />
+        <Route path="/pipeline" element={<Pipeline />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
