@@ -16,6 +16,7 @@ export default function KrakenConnectionForm({ onConnectionStatusChange }) {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [formDirty, setFormDirty] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   // Check if Kraken is already configured on mount
   useEffect(() => {
@@ -80,15 +81,16 @@ export default function KrakenConnectionForm({ onConnectionStatusChange }) {
 
   const handleSaveKeys = async () => {
     if (!apiKey.trim() || !apiSecret.trim()) {
+      setStatusMessage('Please enter both API key and secret');
       toast.error('Please enter both API key and secret');
       return;
     }
 
     setSaving(true);
+    setStatusMessage('Saving and testing credentials…');
+    toast.info('Testing Kraken connection…');
     try {
-      toast.info('Keys saved locally. Testing connection…');
       setFormDirty(false);
-      // Don't await — let testConnection run independently with UI updates
       setTesting(true);
       setTestResult(null);
       const res = await base44.functions.invoke('syncKrakenAccount', {
@@ -102,20 +104,24 @@ export default function KrakenConnectionForm({ onConnectionStatusChange }) {
           open_order_count: res.data.open_order_count,
           success: true,
         });
+        setStatusMessage('✓ Connected successfully!');
         toast.success('Kraken connection verified!');
       } else if (res.data?.kraken_configured === false) {
         setConnectionStatus('not_configured');
         setTestResult({ error: 'API keys not found in environment. Contact support to add them.' });
+        setStatusMessage('✗ API keys not found in environment');
         toast.error('Not configured');
       } else {
         setConnectionStatus('failed');
         setTestResult({ error: res.data?.error || 'Connection test failed' });
+        setStatusMessage(`✗ ${res.data?.error || 'Connection test failed'}`);
         toast.error(res.data?.error || 'Connection test failed');
       }
       setTesting(false);
     } catch (e) {
       setConnectionStatus('failed');
       setTestResult({ error: e.message });
+      setStatusMessage(`✗ Error: ${e.message}`);
       toast.error('Failed to save keys: ' + e.message);
       setTesting(false);
     }
@@ -296,6 +302,20 @@ export default function KrakenConnectionForm({ onConnectionStatusChange }) {
           </>
         )}
       </div>
+
+      {/* Status message — persistent card that's always visible during save/test */}
+      {statusMessage && (
+        <div className={cn(
+          'p-3 rounded-lg text-xs font-medium transition-all',
+          statusMessage.startsWith('✓') 
+            ? 'bg-green-500/10 border border-green-500/30 text-green-400' 
+            : statusMessage.includes('Saving') || statusMessage.includes('Testing')
+            ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400'
+            : 'bg-red-500/10 border border-red-500/30 text-red-400'
+        )}>
+          {statusMessage}
+        </div>
+      )}
 
       {/* Test result */}
       {testResult && testResult.success && (
