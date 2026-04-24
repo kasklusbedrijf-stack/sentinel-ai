@@ -11,73 +11,87 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
   const { formatCurrency, t } = useAppPreferences();
   const [trade, setTrade] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [approving, setApproving] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [rejecting, setRejecting] = useState(false);
-  const [executionMode, setExecutionMode] = useState('validate'); // 'validate' or 'live'
+  // 'idle' | 'validated' | 'sent' | 'rejected'
+  const [uiPhase, setUiPhase] = useState('idle');
+  const [statusMsg, setStatusMsg] = useState(null);
 
   useEffect(() => {
     const loadTrade = async () => {
-      const data = await base44.entities.TradeApproval.list('-created_date', 1);
       if (tradeApprovalId) {
         const found = await base44.entities.TradeApproval.filter({ id: tradeApprovalId });
         if (found.length > 0) setTrade(found[0]);
-      } else if (data.length > 0) {
-        setTrade(data[0]);
+      } else {
+        const data = await base44.entities.TradeApproval.list('-created_date', 1);
+        if (data.length > 0) setTrade(data[0]);
       }
       setLoading(false);
     };
     loadTrade();
   }, [tradeApprovalId]);
 
-  // Step 1: Mark as approved + validate with Kraken (no real order submitted)
+  // Step 1: mark approved + call backend in validate-only mode
   const handleValidate = async () => {
     if (!trade) return;
-    setApproving(true);
+    setBusy(true);
+    setStatusMsg(null);
     try {
-      await base44.entities.TradeApproval.update(trade.id, {
-        status: 'approved',
-        approved_at: new Date().toISOString(),
-      });
+      // Mark as approved (idempotent — safe to re-call if already approved)
+      if (trade.status === 'pending') {
+        await base44.entities.TradeApproval.update(trade.id, {
+          status: 'approved',
+          approved_at: new Date().toISOString(),
+        });
+        setTrade(prev => ({ ...prev, status: 'approved' }));
+      }
+
       const result = await base44.functions.invoke('executeTradeOnKraken', {
         trade_approval_id: trade.id,
-        validation_only: true, // explicit — Kraken validates but does NOT submit
+        validation_only: true,   // explicit: Kraken validate=true, no order created
       });
+
       if (result.data.success) {
-        setExecutionMode('live'); // unlock the live button
+        setUiPhase('validated');
+        setStatusMsg('✓ Kraken accepted the order parameters. Click "Execute Live" to submit the real order.');
       } else {
-        // Revert status so user can retry
-        await base44.entities.TradeApproval.update(trade.id, { status: 'pending' });
-        alert(`Validation failed: ${result.data.error}`);
+        setStatusMsg(`Validation failed: ${result.data.error}`);
       }
-    } catch (error) {
-      await base44.entities.TradeApproval.update(trade.id, { status: 'pending' }).catch(() => {});
-      alert(`Validation error: ${error.message}`);
+    } catch (err) {
+      setStatusMsg(`Error: ${err.message}`);
     }
-    setApproving(false);
+    setBusy(false);
   };
 
-  // Step 2: Submit the real live order to Kraken
+  // Step 2: call backend in live mode — creates real Kraken order
   const handleExecuteLive = async () => {
-    if (!trade || executionMode !== 'live') return;
+    if (!trade) return;
     const confirmed = window.confirm(
-      `LIVE ORDER: Submit ${trade.direction.toUpperCase()} ${trade.asset_symbol} @ ${trade.entry_price} to Kraken?\n\nThis cannot be undone. Confirm?`
+      `⚠️ This will submit a REAL order to Kraken:\n\n` +
+      `${trade.direction?.toUpperCase()} ${trade.asset_symbol} @ ${formatCurrency(trade.entry_price)}\n\n` +
+      `Are you sure?`
     );
     if (!confirmed) return;
-    setApproving(true);
+
+    setBusy(true);
+    setStatusMsg(null);
     try {
       const result = await base44.functions.invoke('executeTradeOnKraken', {
         trade_approval_id: trade.id,
-        validation_only: false, // explicit — real order
+        validation_only: false,  // explicit: live submission
       });
+
       if (result.data.success) {
+        setUiPhase('sent');
         setTrade(prev => ({ ...prev, status: 'sent', exchange_order_id: result.data.order_id }));
+        setStatusMsg(`Order submitted. Kraken TX: ${result.data.kraken_txid || result.data.order_id}`);
       } else {
-        alert(`Execution failed: ${result.data.error}`);
+        setStatusMsg(`Execution failed: ${result.data.error}`);
       }
-    } catch (error) {
-      alert(`Execution error: ${error.message}`);
+    } catch (err) {
+      setStatusMsg(`Error: ${err.message}`);
     }
-    setApproving(false);
+    setBusy(false);
   };
 
   const handleReject = async () => {
@@ -90,8 +104,9 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
         rejection_reason: 'User rejected trade',
       });
       setTrade(prev => ({ ...prev, status: 'rejected' }));
-    } catch (error) {
-      console.error('Rejection failed:', error);
+      setUiPhase('rejected');
+    } catch (err) {
+      console.error('Rejection failed:', err);
     }
     setRejecting(false);
   };
@@ -112,9 +127,9 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
     );
   }
 
-  const isExecuted = ['sent', 'filled', 'partial'].includes(trade.status);
-  const isRejected = trade.status === 'rejected';
-  const isPending = trade.status === 'pending';
+  const isExecuted = ['sent', 'filled', 'partial'].includes(trade.status) || uiPhase === 'sent';
+  const isRejected = trade.status === 'rejected' || uiPhase === 'rejected';
+  const isActionable = !isExecuted && !isRejected;
 
   return (
     <div className="p-4 sm:p-6 space-y-5 max-w-4xl mx-auto">
@@ -130,10 +145,10 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
           <h1 className="text-2xl font-bold text-foreground">Trade Approval</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Review and approve before execution</p>
         </div>
-        {isExecuted && <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Sent</Badge>}
+        {isExecuted && <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Sent to Kraken</Badge>}
         {isRejected && <Badge className="bg-destructive/20 text-destructive border-destructive/30">Rejected</Badge>}
-        {isPending && executionMode === 'validate' && <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Test Mode</Badge>}
-        {isPending && executionMode === 'live' && <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Live Mode</Badge>}
+        {isActionable && uiPhase === 'idle' && <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Test Mode</Badge>}
+        {isActionable && uiPhase === 'validated' && <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Ready to Execute</Badge>}
       </div>
 
       {/* Main Trade Summary */}
@@ -145,11 +160,10 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
                 'w-12 h-12 rounded-xl flex items-center justify-center border flex-shrink-0',
                 trade.direction === 'buy' ? 'bg-green-400/10 border-green-400/30' : 'bg-red-400/10 border-red-400/30'
               )}>
-                {trade.direction === 'buy' ? (
-                  <TrendingUp className={cn('w-6 h-6', trade.direction === 'buy' ? 'text-green-400' : 'text-red-400')} />
-                ) : (
-                  <TrendingDown className="w-6 h-6 text-red-400" />
-                )}
+                {trade.direction === 'buy'
+                  ? <TrendingUp className="w-6 h-6 text-green-400" />
+                  : <TrendingDown className="w-6 h-6 text-red-400" />
+                }
               </div>
               <div>
                 <div className="text-lg font-bold text-foreground">{trade.asset_symbol}</div>
@@ -229,7 +243,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
             <div className="bg-card rounded-lg border border-border/50 p-3 text-center">
               <div className="text-xs text-muted-foreground mb-1">Direction</div>
               <div className={cn('text-lg font-bold font-mono', trade.direction === 'buy' ? 'text-green-400' : 'text-red-400')}>
-                {trade.direction.toUpperCase()}
+                {trade.direction?.toUpperCase()}
               </div>
             </div>
           </div>
@@ -238,13 +252,9 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
           {trade.validity_reason && (
             <div className={cn(
               'p-4 rounded-lg border flex items-start gap-3',
-              trade.status === 'pending' ? 'bg-yellow-500/5 border-yellow-500/30' : 'bg-green-500/5 border-green-500/30'
+              'bg-yellow-500/5 border-yellow-500/30'
             )}>
-              {trade.status === 'pending' ? (
-                <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-              ) : (
-                <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-              )}
+              <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
               <div>
                 <div className="text-sm font-medium text-foreground">Trade Validation</div>
                 <p className="text-xs text-muted-foreground mt-1">{trade.validity_reason}</p>
@@ -254,6 +264,20 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
         </CardContent>
       </Card>
 
+      {/* Status message */}
+      {statusMsg && (
+        <div className={cn(
+          'p-4 rounded-lg border flex items-start gap-3',
+          uiPhase === 'validated' ? 'bg-green-500/5 border-green-500/30' : 'bg-destructive/5 border-destructive/30'
+        )}>
+          {uiPhase === 'validated'
+            ? <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+            : <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+          }
+          <p className="text-sm text-foreground">{statusMsg}</p>
+        </div>
+      )}
+
       {/* Order Status (if sent) */}
       {isExecuted && (
         <Card className="bg-green-500/5 border-green-500/30">
@@ -261,13 +285,13 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
             <div className="flex items-center gap-3 mb-3">
               <Clock className="w-5 h-5 text-green-400" />
               <div>
-                <div className="text-sm font-semibold text-foreground">Order Status: {trade.status}</div>
-                <div className="text-xs text-muted-foreground">Check Alerts for execution updates</div>
+                <div className="text-sm font-semibold text-foreground">Order submitted to Kraken</div>
+                <div className="text-xs text-muted-foreground">Check Alerts for fill updates</div>
               </div>
             </div>
-            {trade.exchange_order_id && (
+            {statusMsg && (
               <div className="text-xs text-muted-foreground font-mono bg-secondary/30 p-2 rounded border border-border/50">
-                Order ID: {trade.exchange_order_id}
+                {statusMsg}
               </div>
             )}
           </CardContent>
@@ -275,36 +299,42 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
       )}
 
       {/* Actions */}
-      {isPending && (
+      {isActionable && (
         <div className="flex flex-col sm:flex-row gap-3">
           <Button
             onClick={handleReject}
-            disabled={rejecting || approving}
+            disabled={rejecting || busy}
             variant="outline"
             className="sm:flex-1 border-destructive/50 text-destructive hover:bg-destructive/10"
           >
-            {rejecting ? 'Rejecting…' : 'Reject'}
+            {rejecting ? 'Rejecting…' : 'Reject Trade'}
           </Button>
-          <Button
-            onClick={handleValidate}
-            disabled={approving || executionMode === 'live'}
-            className="sm:flex-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30"
-          >
-            {approving && executionMode === 'validate' ? 'Validating…' : executionMode === 'live' ? '✓ Validated' : 'Validate Only'}
-          </Button>
-          <Button
-            onClick={handleExecuteLive}
-            disabled={approving || executionMode !== 'live'}
-            className="sm:flex-1 bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 disabled:opacity-30"
-          >
-            {approving && executionMode === 'live' ? 'Submitting…' : 'Execute Live'}
-          </Button>
+
+          {uiPhase !== 'validated' && (
+            <Button
+              onClick={handleValidate}
+              disabled={busy}
+              className="sm:flex-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30"
+            >
+              {busy ? 'Validating…' : 'Validate (Test Mode)'}
+            </Button>
+          )}
+
+          {uiPhase === 'validated' && (
+            <Button
+              onClick={handleExecuteLive}
+              disabled={busy}
+              className="sm:flex-1 bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
+            >
+              {busy ? 'Submitting…' : '⚡ Execute Live Order'}
+            </Button>
+          )}
         </div>
       )}
 
       {isRejected && (
         <div className="p-4 bg-destructive/5 border border-destructive/30 rounded-lg text-center">
-          <p className="text-sm text-destructive">Trade rejected on {new Date(trade.rejected_at).toLocaleString()}</p>
+          <p className="text-sm text-destructive">Trade rejected{trade.rejected_at ? ` on ${new Date(trade.rejected_at).toLocaleString()}` : ''}</p>
           {trade.rejection_reason && <p className="text-xs text-muted-foreground mt-1">{trade.rejection_reason}</p>}
         </div>
       )}
