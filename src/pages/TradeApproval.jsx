@@ -29,35 +29,53 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
     loadTrade();
   }, [tradeApprovalId]);
 
-  const handleApprove = async () => {
+  // Step 1: Mark as approved + validate with Kraken (no real order submitted)
+  const handleValidate = async () => {
     if (!trade) return;
     setApproving(true);
     try {
-      await base44.entities.TradeApproval.update(trade.id, { 
-        status: 'approved', 
-        approved_at: new Date().toISOString() 
+      await base44.entities.TradeApproval.update(trade.id, {
+        status: 'approved',
+        approved_at: new Date().toISOString(),
       });
-      
-      // Execute trade on Kraken
       const result = await base44.functions.invoke('executeTradeOnKraken', {
         trade_approval_id: trade.id,
+        validation_only: true, // explicit — Kraken validates but does NOT submit
       });
-
       if (result.data.success) {
-        if (result.data.validation_mode) {
-          // Validation passed; show option to proceed to live
-          setExecutionMode('live');
-          alert('Validation passed! Click "Execute Live" to submit the actual order to Kraken.');
-        } else {
-          // Live order submitted
-          setTrade(prev => ({ ...prev, status: 'sent', exchange_order_id: result.data.order_id }));
-        }
+        setExecutionMode('live'); // unlock the live button
+      } else {
+        // Revert status so user can retry
+        await base44.entities.TradeApproval.update(trade.id, { status: 'pending' });
+        alert(`Validation failed: ${result.data.error}`);
+      }
+    } catch (error) {
+      await base44.entities.TradeApproval.update(trade.id, { status: 'pending' }).catch(() => {});
+      alert(`Validation error: ${error.message}`);
+    }
+    setApproving(false);
+  };
+
+  // Step 2: Submit the real live order to Kraken
+  const handleExecuteLive = async () => {
+    if (!trade || executionMode !== 'live') return;
+    const confirmed = window.confirm(
+      `LIVE ORDER: Submit ${trade.direction.toUpperCase()} ${trade.asset_symbol} @ ${trade.entry_price} to Kraken?\n\nThis cannot be undone. Confirm?`
+    );
+    if (!confirmed) return;
+    setApproving(true);
+    try {
+      const result = await base44.functions.invoke('executeTradeOnKraken', {
+        trade_approval_id: trade.id,
+        validation_only: false, // explicit — real order
+      });
+      if (result.data.success) {
+        setTrade(prev => ({ ...prev, status: 'sent', exchange_order_id: result.data.order_id }));
       } else {
         alert(`Execution failed: ${result.data.error}`);
       }
     } catch (error) {
-      console.error('Approval failed:', error);
-      alert(`Error: ${error.message}`);
+      alert(`Execution error: ${error.message}`);
     }
     setApproving(false);
   };
@@ -258,32 +276,29 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
 
       {/* Actions */}
       {isPending && (
-        <div className="flex flex-col sm:flex-row gap-3 sticky bottom-4 sm:static">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Button
             onClick={handleReject}
-            disabled={rejecting}
+            disabled={rejecting || approving}
             variant="outline"
             className="sm:flex-1 border-destructive/50 text-destructive hover:bg-destructive/10"
           >
-            {rejecting ? 'Rejecting…' : 'Reject Trade'}
+            {rejecting ? 'Rejecting…' : 'Reject'}
           </Button>
-          {executionMode === 'validate' ? (
-            <Button
-              onClick={handleApprove}
-              disabled={approving}
-              className="sm:flex-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30"
-            >
-              {approving ? 'Validating…' : 'Validate (Test Mode)'}
-            </Button>
-          ) : (
-            <Button
-              onClick={handleApprove}
-              disabled={approving}
-              className="sm:flex-1 bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
-            >
-              {approving ? 'Executing…' : 'Execute Live Order'}
-            </Button>
-          )}
+          <Button
+            onClick={handleValidate}
+            disabled={approving || executionMode === 'live'}
+            className="sm:flex-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30"
+          >
+            {approving && executionMode === 'validate' ? 'Validating…' : executionMode === 'live' ? '✓ Validated' : 'Validate Only'}
+          </Button>
+          <Button
+            onClick={handleExecuteLive}
+            disabled={approving || executionMode !== 'live'}
+            className="sm:flex-1 bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 disabled:opacity-30"
+          >
+            {approving && executionMode === 'live' ? 'Submitting…' : 'Execute Live'}
+          </Button>
         </div>
       )}
 
