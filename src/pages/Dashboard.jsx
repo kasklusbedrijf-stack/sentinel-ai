@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { DollarSign, TrendingUp, BarChart3, ShieldAlert, Activity, Zap } from 'lucide-react';
+import { DollarSign, TrendingUp, BarChart3, ShieldAlert, Activity, Zap, Cpu } from 'lucide-react';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentSignals from '@/components/dashboard/RecentSignals';
 import RecentAlerts from '@/components/dashboard/RecentAlerts';
 import TradeApprovalWidget from '@/components/TradeApprovalWidget';
-import AiScoutButton from '@/components/AiScoutButton';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SignalBadge, PnlText } from '@/components/ui/signal-badge';
@@ -103,6 +102,22 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* AI Scout trigger banner */}
+      <Link to="/pipeline">
+        <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-primary/30 bg-primary/10 hover:bg-primary/15 transition-colors cursor-pointer">
+          <div className="w-9 h-9 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
+            <Cpu className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-foreground">AI Scout</div>
+            <div className="text-xs text-muted-foreground">Run 3-agent market review · Market Watcher → Trade Planner → Risk Manager</div>
+          </div>
+          <Button size="sm" className="flex-shrink-0 h-8 text-xs px-3">
+            Run
+          </Button>
+        </div>
+      </Link>
+
       {/* Risk mode banner */}
       <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl border border-primary/20 bg-primary/5">
         <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
@@ -116,9 +131,6 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
-
-      {/* AI Scout — multi-agent pipeline trigger */}
-      <AiScoutButton />
 
       {/* Pending Trade Approvals */}
       <TradeApprovalWidget />
