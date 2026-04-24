@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 import {
   LayoutDashboard, TrendingUp, Briefcase, Zap, Settings,
   Bell, Bot, ChevronRight, Menu, X, Shield, Activity, Search, Cpu
@@ -8,6 +9,29 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import GlobalSearch from '@/components/GlobalSearch';
+
+function TradingModeStatus() {
+  const [mode, setMode] = useState('analysis_only');
+  useEffect(() => {
+    base44.entities.RiskSettings.list('-created_date', 1)
+      .then(rs => { if (rs[0]?.trading_mode) setMode(rs[0].trading_mode); })
+      .catch(() => {});
+  }, []);
+  const isAuto = mode === 'auto';
+  const isSemi = mode === 'semi_auto';
+  const label = isAuto ? 'Auto Trading' : isSemi ? 'Semi-Auto' : 'Analysis Only';
+  const colorCls = isAuto ? 'text-orange-400' : isSemi ? 'text-yellow-400' : 'text-green-400';
+  const bgCls = isAuto ? 'bg-orange-500/10 border-orange-500/20' : isSemi ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-green-500/10 border-green-500/20';
+  const dotCls = isAuto ? 'bg-orange-400' : isSemi ? 'bg-yellow-400' : 'bg-green-400';
+  return (
+    <div className="px-4 py-4 border-t border-sidebar-border">
+      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${bgCls}`}>
+        <div className={`w-2 h-2 rounded-full animate-pulse ${dotCls}`} />
+        <span className={`text-xs font-medium ${colorCls}`}>{label}</span>
+      </div>
+    </div>
+  );
+}
 
 const getNavItems = (t) => [
   { path: '/', label: t('nav_dashboard'), icon: LayoutDashboard },
@@ -27,8 +51,21 @@ export default function Layout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { t } = useAppPreferences();
   const navItems = getNavItems(t);
+
+  // Live unread alert count
+  useEffect(() => {
+    base44.entities.Alert.filter({ is_read: false }, '-created_date', 100)
+      .then(a => setUnreadCount(a.length))
+      .catch(() => {});
+    const unsub = base44.entities.Alert.subscribe(event => {
+      if (event.type === 'create') setUnreadCount(c => c + 1);
+      if (event.type === 'update' && event.data?.is_read) setUnreadCount(c => Math.max(0, c - 1));
+    });
+    return unsub;
+  }, []);
 
   // Global keyboard shortcut for search (Cmd+K or Ctrl+K)
   useEffect(() => {
@@ -109,12 +146,7 @@ export default function Layout() {
         </nav>
 
         {/* Bottom status */}
-        <div className="px-4 py-4 border-t border-sidebar-border">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20">
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-xs text-green-400 font-medium">Analysis Mode Active</span>
-          </div>
-        </div>
+        <TradingModeStatus />
       </aside>
 
       {/* Main */}
@@ -155,7 +187,9 @@ export default function Layout() {
           <Link to="/alerts">
             <Button variant="ghost" size="icon" className="relative w-9 h-9">
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
+              )}
             </Button>
           </Link>
         </header>

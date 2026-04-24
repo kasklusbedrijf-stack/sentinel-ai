@@ -106,7 +106,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
 
             {/* Footer hint */}
             <div className="px-4 py-2 border-t border-border/50 bg-secondary/30 text-xs text-muted-foreground text-center">
-              {t('global_close')}
+              Press Esc to close · ↵ to navigate
             </div>
           </div>
         </div>

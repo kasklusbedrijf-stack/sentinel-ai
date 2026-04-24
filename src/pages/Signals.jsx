@@ -149,7 +149,7 @@ export default function Signals() {
                     [t('signals_momentum_score'), signal.momentum_score],
                     [t('signals_volume_score'), signal.volume_score],
                     [t('signals_technical_score'), signal.technical_score],
-                    [t('dashboard_active_signals'), signal.market_context_score],
+                    ['Market Context', signal.market_context_score],
                   ].map(([l, v]) => (
                     <div key={l} className="bg-card rounded-lg p-3 text-center">
                       <div className="text-xs text-muted-foreground mb-1">{l}</div>
@@ -200,8 +200,8 @@ export default function Signals() {
                 {/* Actions */}
                 {signal.status === 'active' && (
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" onClick={() => handleStatusChange(signal, 'executed')} className="bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 text-xs">{t('global_save')} &amp; {t('signals_summary')}</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(signal, 'rejected')} className="text-xs">{t('global_cancel')}</Button>
+                    <Button size="sm" onClick={() => handleStatusChange(signal, 'executed')} className="bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 text-xs">{t('signals_filter_executed')}</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleStatusChange(signal, 'rejected')} className="text-xs">{t('trade_approval_reject')}</Button>
                     <Button size="sm" variant="outline" onClick={() => handleStatusChange(signal, 'expired')} className="text-xs">{t('signals_filter_expired')}</Button>
                   </div>
                 )}

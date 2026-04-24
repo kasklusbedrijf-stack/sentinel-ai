@@ -132,19 +132,23 @@ export default function Settings() {
         )}
       </div>
 
-      {/* Exchange Connection Placeholder */}
+      {/* Exchange Connection Status */}
       <div className="rounded-xl border border-border bg-card p-5 space-y-4">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Link2 className="w-4 h-4 text-primary" /> {t('settings_exchange_connection')}
         </h3>
-        <p className="text-sm text-muted-foreground">
-          {t('settings_exchange_coming')}
-        </p>
-        <ul className="text-sm text-muted-foreground space-y-1 list-disc ml-5">
-          <li>{t('settings_exchange_api')}</li>
-          <li>{t('settings_exchange_sync')}</li>
-          <li>{t('settings_exchange_trade')}</li>
-          <li>{t('settings_exchange_test')}</li>
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/5 border border-green-500/20">
+          <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-green-400">Kraken — Active</p>
+            <p className="text-xs text-muted-foreground mt-0.5">REST API (balances, orders, execution) · WebSocket (live prices)</p>
+          </div>
+        </div>
+        <ul className="text-sm text-muted-foreground space-y-1.5">
+          <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Portfolio balances sync from Kraken REST</li>
+          <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Live prices via Kraken WebSocket v2</li>
+          <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Order execution with user approval gate</li>
+          <li className="flex items-center gap-2"><span className="text-green-400">✓</span> CoinGecko for public market overview</li>
         </ul>
         <div className="p-3 rounded-lg bg-yellow-400/5 border border-yellow-400/20">
           <p className="text-xs text-yellow-400 font-medium">{t('settings_security_notice')}</p>

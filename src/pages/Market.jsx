@@ -22,7 +22,7 @@ export default function Market() {
   const loadAssets = async () => {
     const [a, s] = await Promise.all([
       base44.entities.Asset.list('-market_cap', 100),
-      base44.entities.AISignal.filter({ status: 'ACTIVE' }, '-created_date', 100),
+      base44.entities.AISignal.filter({ status: 'active' }, '-created_date', 100),
     ]);
     setAssets(a);
     setSignals(s);

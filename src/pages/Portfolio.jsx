@@ -115,7 +115,7 @@ export default function Portfolio() {
 
       {/* Mobile cards / Desktop table */}
       {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">{t('global_save')}...</div>
+        <div className="flex items-center justify-center py-12"><div className="w-6 h-6 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
       ) : assets.length === 0 ? (
         <div className="bg-card border border-border rounded-xl p-10 text-center text-muted-foreground text-sm">
           {t('portfolio_add_holding')}

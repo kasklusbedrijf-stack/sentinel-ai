@@ -32,7 +32,7 @@ export default function Audit() {
         <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
           <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /> {t('audit_log')}
         </h1>
-        <p className="text-sm text-muted-foreground mt-0.5 sm:mt-1">{t('dashboard_capital_protection')}</p>
+        <p className="text-sm text-muted-foreground mt-0.5 sm:mt-1">{t('audit_title')}</p>
       </div>
 
       {/* Mobile cards */}

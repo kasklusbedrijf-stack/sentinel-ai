@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { ChevronLeft, AlertCircle, CheckCircle2, Clock, TrendingUp, TrendingDown, DollarSign, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,8 @@ import { cn } from '@/lib/utils';
 
 export default function TradeApproval({ tradeApprovalId, onBack }) {
   const { formatCurrency, t } = useAppPreferences();
+  const { id: routeId } = useParams();
+  const navigate = useNavigate();
   const [trade, setTrade] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -17,10 +20,14 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
   const [uiPhase, setUiPhase] = useState('idle');
   const [statusMsg, setStatusMsg] = useState(null);
 
+  // Resolve trade ID: prop takes priority, then URL param, then latest
+  const resolvedId = tradeApprovalId || routeId;
+  const handleBack = onBack || (() => navigate(-1));
+
   useEffect(() => {
     const loadTrade = async () => {
-      if (tradeApprovalId) {
-        const found = await base44.entities.TradeApproval.filter({ id: tradeApprovalId });
+      if (resolvedId) {
+        const found = await base44.entities.TradeApproval.filter({ id: resolvedId });
         if (found.length > 0) setTrade(found[0]);
       } else {
         const data = await base44.entities.TradeApproval.list('-created_date', 1);
@@ -29,7 +36,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
       setLoading(false);
     };
     loadTrade();
-  }, [tradeApprovalId]);
+  }, [resolvedId]);
 
   // Step 1: mark approved + call backend in validate-only mode
   const handleValidate = async () => {
@@ -137,7 +144,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="p-1 hover:bg-secondary rounded-lg text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />

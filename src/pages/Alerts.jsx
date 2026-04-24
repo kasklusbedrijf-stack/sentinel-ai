@@ -61,21 +61,21 @@ export default function Alerts() {
         </div>
         {unreadCount > 0 && (
           <Button size="sm" variant="outline" onClick={markAllRead} className="gap-2 flex-shrink-0">
-            <CheckCheck className="w-4 h-4" /> <span className="hidden sm:inline">Mark All Read</span><span className="sm:hidden">Read All</span>
+          <CheckCheck className="w-4 h-4" /> <span className="hidden sm:inline">{t('alerts_mark_read')}</span><span className="sm:hidden">{t('alerts_mark_as_read')}</span>
           </Button>
         )}
       </div>
 
       {/* Filter tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {types.map(t => (
+        {types.map(type => (
           <button
-            key={t}
-            onClick={() => setFilter(t)}
+            key={type}
+            onClick={() => setFilter(type)}
             className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border",
-              filter === t ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary/40')}
+              filter === type ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary/40')}
           >
-            {t === 'all' ? 'All' : t === 'unread' ? `Unread (${unreadCount})` : t.replace('_', ' ')}
+            {type === 'all' ? t('signals_filter_all') : type === 'unread' ? `${t('alerts_unread')} (${unreadCount})` : t(`alerts_type_${type}`) || type.replace(/_/g, ' ')}
           </button>
         ))}
       </div>
@@ -84,7 +84,7 @@ export default function Alerts() {
         <Card className="bg-card border-border">
           <CardContent className="py-16 text-center">
             <Bell className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No alerts in this category.</p>
+            <p className="text-muted-foreground">{t('alerts_no_alerts')}</p>
           </CardContent>
         </Card>
       )}
