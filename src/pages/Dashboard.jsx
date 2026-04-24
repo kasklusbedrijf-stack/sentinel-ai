@@ -68,12 +68,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-5 sm:space-y-6">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-7 sm:space-y-8">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{t('dashboard_title')}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{t('dashboard_portfolio_value')}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">{t('dashboard_title')}</h1>
+          <p className="text-xs text-muted-foreground mt-2 uppercase tracking-widest">{t('dashboard_portfolio_value')}</p>
         </div>
         {riskSettings?.emergency_stop_active && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/15 border border-red-500/30">
@@ -84,7 +84,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6">
         <StatsCard
           title={t('dashboard_portfolio_value')}
           value={formatCurrency(totalValue)}
@@ -178,8 +178,8 @@ export default function Dashboard() {
 
       {/* Open Positions preview */}
       {positions.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-4 sm:p-5 overflow-hidden">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="rounded-xl border border-border bg-card p-5 sm:p-6 overflow-hidden">
+          <div className="flex items-center justify-between mb-5 sm:mb-6">
             <h3 className="text-sm font-semibold text-foreground">{t('dashboard_open_positions')}</h3>
             <Link to="/positions">
               <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">{t('dashboard_view_all')}</Button>
@@ -230,16 +230,16 @@ export default function Dashboard() {
 
       {/* Portfolio summary */}
       {portfolio.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-5 sm:mb-6">
             <h3 className="text-sm font-semibold text-foreground">{t('dashboard_holdings')}</h3>
             <Link to="/portfolio">
               <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">{t('dashboard_view_all')}</Button>
             </Link>
           </div>
-          <div className="space-y-1.5 sm:space-y-2">
+          <div className="space-y-3">
             {portfolio.slice(0, 5).map(asset => (
-              <div key={asset.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 transition-colors">
+              <div key={asset.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/40 transition-colors">
                 <CryptoIcon symbol={asset.asset_symbol} size="md" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-foreground">{asset.asset_symbol}</div>

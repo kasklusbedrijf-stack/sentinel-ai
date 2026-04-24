@@ -10,9 +10,9 @@ export default function StatsCard({ title, value, subtitle, trend, trendValue, i
     `}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 sm:mb-2">{title}</p>
-          <div className="text-lg sm:text-2xl font-bold text-foreground font-mono truncate">{value}</div>
-          {subtitle && <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">{subtitle}</p>}
+          <p className="text-[9px] sm:text-xs font-medium text-muted-foreground/70 uppercase tracking-widest mb-2.5 sm:mb-3">{title}</p>
+          <div className="text-2xl sm:text-3xl font-bold text-foreground font-mono truncate">{value}</div>
+          {subtitle && <p className="text-[10px] sm:text-xs text-muted-foreground/60 mt-1.5 sm:mt-2 truncate">{subtitle}</p>}
         </div>
         {Icon && (
           <div className={`p-2 sm:p-2.5 rounded-lg flex-shrink-0 ml-2 sm:ml-3 ${accent ? 'bg-primary/15' : 'bg-muted'}`}>

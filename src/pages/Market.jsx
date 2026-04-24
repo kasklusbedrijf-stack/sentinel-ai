@@ -57,11 +57,11 @@ export default function Market() {
   const losers  = [...assets].sort((a, b) => get24h(a) - get24h(b)).slice(0, 3);
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-7 sm:space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('market_title')}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{t('dashboard_active_signals')}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">{t('market_title')}</h1>
+          <p className="text-xs text-muted-foreground mt-2 uppercase tracking-widest">{t('dashboard_active_signals')}</p>
         </div>
         <LiveDataControls
           lastSyncedAt={lastSyncedAt}
@@ -71,13 +71,13 @@ export default function Market() {
       </div>
 
       {/* Gainers / Losers */}
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
-        <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-3 sm:p-4">
-          <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
-              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 flex-shrink-0" />
-              <span className="text-xs sm:text-sm font-semibold text-green-400 truncate">{t('market_top_gainers')}</span>
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 sm:p-5">
+          <div className="flex items-center gap-2 mb-4 sm:mb-5">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-semibold text-green-400 uppercase tracking-wider">Top Gainers</span>
             </div>
-          <div className="space-y-1.5 sm:space-y-2">
+          <div className="space-y-2.5">
             {gainers.map(a => (
               <div key={a.id} className="flex items-center justify-between gap-1 min-w-0">
                 <span className="text-xs sm:text-sm font-mono text-foreground truncate">{a.symbol}</span>
@@ -88,12 +88,12 @@ export default function Market() {
             ))}
           </div>
         </div>
-        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 sm:p-4">
-          <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
-              <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-400 flex-shrink-0" />
-              <span className="text-xs sm:text-sm font-semibold text-red-400 truncate">{t('market_top_losers')}</span>
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 sm:p-5">
+          <div className="flex items-center gap-2 mb-4 sm:mb-5">
+              <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-red-400 flex-shrink-0" />
+              <span className="text-xs sm:text-sm font-semibold text-red-400 uppercase tracking-wider">Top Losers</span>
             </div>
-          <div className="space-y-1.5 sm:space-y-2">
+          <div className="space-y-2.5">
             {losers.map(a => (
               <div key={a.id} className="flex items-center justify-between gap-1 min-w-0">
                 <span className="text-xs sm:text-sm font-mono text-foreground truncate">{a.symbol}</span>
@@ -107,7 +107,7 @@ export default function Market() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4 mt-7">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -133,7 +133,7 @@ export default function Market() {
       </div>
 
       {/* Category tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
         {CATEGORIES.map(cat => (
           <button
             key={cat}
@@ -152,9 +152,9 @@ export default function Market() {
       {/* Asset list */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         {/* Header — desktop only */}
-        <div className="hidden sm:flex items-center gap-4 px-4 py-2.5 border-b border-border bg-muted/30 text-xs font-medium text-muted-foreground">
+        <div className="hidden sm:flex items-center gap-4 px-4 py-3.5 border-b border-border bg-muted/30 text-[11px] font-medium text-muted-foreground/70 uppercase tracking-wider">
           <div className="w-32 flex-shrink-0">Asset</div>
-          <div className="w-28 flex-shrink-0">Price <span className="text-blue-400/70">(CoinGecko)</span></div>
+          <div className="w-28 flex-shrink-0">Price</div>
           <div className="hidden sm:flex gap-4 flex-1">
             <div className="w-16 text-center">1H</div>
             <div className="w-16 text-center">24H</div>

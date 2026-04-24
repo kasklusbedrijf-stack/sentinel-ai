@@ -20,7 +20,7 @@ export default function RecentAlerts() {
 
   return (
     <div className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-5">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Bell className="w-4 h-4 text-primary" /> Alerts
         </h3>
@@ -31,16 +31,16 @@ export default function RecentAlerts() {
       {alerts.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-8">No alerts. The system will notify you of important events.</p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {alerts.map(alert => {
             const config = severityConfig[alert.severity] || severityConfig.info;
             const IconComp = config.icon;
             return (
-              <div key={alert.id} className={cn("flex items-start gap-3 p-3 rounded-lg", config.bg)}>
+              <div key={alert.id} className={cn("flex items-start gap-3 p-3 rounded-lg border border-transparent hover:border-current/20 transition-colors", config.bg)}>
                 <IconComp className={cn("w-4 h-4 mt-0.5 shrink-0", config.color)} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">{alert.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 truncate">{alert.message}</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">{alert.message}</p>
                 </div>
               </div>
             );
