@@ -74,24 +74,24 @@ export default function Dashboard() {
         <StatsCard
           title={t('dashboard_portfolio_value')}
           value={formatCurrency(totalValue)}
-          subtitle={t('portfolio_holdings')}
+          subtitle={t('dashboard_holdings')}
           icon={DollarSign}
           accent={true}
           trendValue={totalPnlPct}
-          trend="all time"
+          trend={t('dashboard_all_time')}
         />
         <StatsCard
           title={t('dashboard_unrealized_pnl')}
           value={`${totalPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalPnl))}`}
-          subtitle={`${totalPnlPct.toFixed(2)}% overall`}
+          subtitle={`${totalPnlPct.toFixed(2)}% ${t('dashboard_overall')}`}
           icon={TrendingUp}
           trendValue={totalPnlPct}
-          trend="unrealized"
+          trend={t('dashboard_unrealized')}
         />
         <StatsCard
           title={t('dashboard_open_positions')}
           value={openPositionsCount}
-          subtitle={`Max: ${riskSettings?.max_open_positions || 5}`}
+          subtitle={`${t('dashboard_max')}: ${riskSettings?.max_open_positions || 5}`}
           icon={Activity}
         />
         <StatsCard
@@ -111,7 +111,7 @@ export default function Dashboard() {
         </div>
         <div className="flex-shrink-0">
           <Link to="/settings">
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7 px-2 sm:px-3">{t('global_save')}</Button>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7 px-2 sm:px-3">{t('global_edit')}</Button>
           </Link>
         </div>
       </div>
@@ -131,7 +131,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-sm font-semibold text-foreground">{t('dashboard_open_positions')}</h3>
             <Link to="/positions">
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">{t('global_save')}</Button>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">{t('dashboard_view_all')}</Button>
             </Link>
           </div>
           {/* Mobile: compact card list */}
@@ -144,7 +144,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right">
                   <PnlText value={pos.unrealized_pnl_pct} suffix="%" />
-                  <p className="text-xs text-muted-foreground">Risk {pos.risk_pct?.toFixed(1)}%</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard_risk_pct')} {pos.risk_pct?.toFixed(1)}%</p>
                 </div>
               </div>
             ))}
@@ -155,10 +155,10 @@ export default function Dashboard() {
               <thead>
                 <tr className="text-xs text-muted-foreground border-b border-border">
                   <th className="text-left pb-2 font-medium">Asset</th>
-                  <th className="text-right pb-2 font-medium">Entry</th>
-                  <th className="text-right pb-2 font-medium">Current</th>
-                  <th className="text-right pb-2 font-medium">PnL</th>
-                  <th className="text-right pb-2 font-medium">Risk%</th>
+                  <th className="text-right pb-2 font-medium">{t('dashboard_entry')}</th>
+                  <th className="text-right pb-2 font-medium">{t('dashboard_current')}</th>
+                  <th className="text-right pb-2 font-medium">{t('dashboard_pnl')}</th>
+                  <th className="text-right pb-2 font-medium">{t('dashboard_risk_label')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
@@ -181,9 +181,9 @@ export default function Dashboard() {
       {portfolio.length > 0 && (
         <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-sm font-semibold text-foreground">{t('portfolio_holdings')}</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('dashboard_holdings')}</h3>
             <Link to="/portfolio">
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">{t('global_save')}</Button>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7">{t('dashboard_view_all')}</Button>
             </Link>
           </div>
           <div className="space-y-1.5 sm:space-y-2">
@@ -194,7 +194,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-foreground">{asset.asset_symbol}</div>
-                  <div className="text-xs text-muted-foreground truncate">{asset.quantity} units</div>
+                  <div className="text-xs text-muted-foreground truncate">{asset.quantity} {t('dashboard_units')}</div>
                 </div>
                 <div className="text-right flex-shrink-0">
                    <div className="text-sm font-mono font-semibold text-foreground">

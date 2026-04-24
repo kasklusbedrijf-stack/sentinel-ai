@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 
 export default function TradeApprovalWidget() {
   const navigate = useNavigate();
-  const { formatCurrency } = useAppPreferences();
+  const { formatCurrency, t } = useAppPreferences();
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,7 +49,7 @@ export default function TradeApprovalWidget() {
       <div className="flex items-center gap-2 px-4 py-2">
         <Clock className="w-4 h-4 text-yellow-400" />
         <h3 className="text-sm font-semibold text-foreground">
-          {pending.length} Trade{pending.length !== 1 ? 's' : ''} Awaiting Approval
+          {pending.length} {pending.length !== 1 ? t('trade_widget_awaiting_plural') : t('trade_widget_awaiting')}
         </h3>
       </div>
       <div className="space-y-2 px-4">
@@ -72,7 +72,7 @@ export default function TradeApprovalWidget() {
                       {trade.asset_symbol}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Entry {formatCurrency(trade.entry_price)}
+                      {t('trade_widget_entry')} {formatCurrency(trade.entry_price)}
                     </div>
                   </div>
                 </div>
@@ -99,7 +99,7 @@ export default function TradeApprovalWidget() {
             size="sm"
             className="w-full text-xs"
           >
-            View All
+            {t('trade_widget_view_all')}
           </Button>
         )}
       </div>

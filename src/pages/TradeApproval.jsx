@@ -53,12 +53,12 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
 
       if (result.data.success) {
         setUiPhase('validated');
-        setStatusMsg('✓ Kraken accepted the order parameters. Click "Execute Live" to submit the real order.');
+        setStatusMsg(t('trade_approval_validated_ok'));
       } else {
-        setStatusMsg(`Validation failed: ${result.data.error}`);
+        setStatusMsg(`${t('trade_approval_validation_failed')}: ${result.data.error}`);
       }
     } catch (err) {
-      setStatusMsg(`Error: ${err.message}`);
+      setStatusMsg(`${t('trade_approval_error')}: ${err.message}`);
     }
     setBusy(false);
   };
@@ -67,9 +67,10 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
   const handleExecuteLive = async () => {
     if (!trade) return;
     const confirmed = window.confirm(
-      `⚠️ This will submit a REAL order to Kraken:\n\n` +
-      `${trade.direction?.toUpperCase()} ${trade.asset_symbol} @ ${formatCurrency(trade.entry_price)}\n\n` +
-      `Are you sure?`
+      t('trade_approval_confirm_live')
+        .replace('{direction}', trade.direction?.toUpperCase())
+        .replace('{symbol}', trade.asset_symbol)
+        .replace('{price}', formatCurrency(trade.entry_price))
     );
     if (!confirmed) return;
 
@@ -84,12 +85,12 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
       if (result.data.success) {
         setUiPhase('sent');
         setTrade(prev => ({ ...prev, status: 'sent', exchange_order_id: result.data.order_id }));
-        setStatusMsg(`Order submitted. Kraken TX: ${result.data.kraken_txid || result.data.order_id}`);
+        setStatusMsg(`${t('trade_approval_order_submitted')}: ${result.data.kraken_txid || result.data.order_id}`);
       } else {
-        setStatusMsg(`Execution failed: ${result.data.error}`);
+        setStatusMsg(`${t('trade_approval_execution_failed')}: ${result.data.error}`);
       }
     } catch (err) {
-      setStatusMsg(`Error: ${err.message}`);
+      setStatusMsg(`${t('trade_approval_error')}: ${err.message}`);
     }
     setBusy(false);
   };
@@ -101,7 +102,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
       await base44.entities.TradeApproval.update(trade.id, {
         status: 'rejected',
         rejected_at: new Date().toISOString(),
-        rejection_reason: 'User rejected trade',
+        rejection_reason: t('trade_approval_user_rejected'),
       });
       setTrade(prev => ({ ...prev, status: 'rejected' }));
       setUiPhase('rejected');
@@ -142,13 +143,13 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-foreground">Trade Approval</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Review and approve before execution</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('trade_approval_title')}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{t('trade_approval_subtitle')}</p>
         </div>
-        {isExecuted && <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Sent to Kraken</Badge>}
-        {isRejected && <Badge className="bg-destructive/20 text-destructive border-destructive/30">Rejected</Badge>}
-        {isActionable && uiPhase === 'idle' && <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Test Mode</Badge>}
-        {isActionable && uiPhase === 'validated' && <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Ready to Execute</Badge>}
+        {isExecuted && <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{t('status_sent')}</Badge>}
+        {isRejected && <Badge className="bg-destructive/20 text-destructive border-destructive/30">{t('status_rejected')}</Badge>}
+        {isActionable && uiPhase === 'idle' && <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">{t('status_test_mode')}</Badge>}
+        {isActionable && uiPhase === 'validated' && <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">{t('status_ready_to_execute')}</Badge>}
       </div>
 
       {/* Main Trade Summary */}
@@ -171,7 +172,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-muted-foreground">Entry Price</div>
+              <div className="text-xs text-muted-foreground">{t('trade_approval_entry_price')}</div>
               <div className="text-2xl font-bold text-foreground font-mono">{formatCurrency(trade.entry_price)}</div>
             </div>
           </div>
@@ -191,11 +192,11 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
           {/* Price Levels Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {[
-              { label: 'Entry', value: trade.entry_price, color: 'text-foreground', icon: DollarSign },
-              { label: 'Stop Loss', value: trade.stop_loss, color: 'text-red-400', icon: Shield },
-              { label: 'TP1', value: trade.tp1, color: 'text-green-400', icon: TrendingUp },
-              { label: 'TP2', value: trade.tp2, color: 'text-green-400', icon: TrendingUp },
-              { label: 'TP3', value: trade.tp3, color: 'text-green-400', icon: TrendingUp },
+              { label: t('signals_entry'), value: trade.entry_price, color: 'text-foreground', icon: DollarSign },
+              { label: t('positions_stop_loss'), value: trade.stop_loss, color: 'text-red-400', icon: Shield },
+              { label: t('positions_tp1'), value: trade.tp1, color: 'text-green-400', icon: TrendingUp },
+              { label: t('positions_tp2'), value: trade.tp2, color: 'text-green-400', icon: TrendingUp },
+              { label: t('positions_tp3'), value: trade.tp3, color: 'text-green-400', icon: TrendingUp },
             ].map(({ label, value, color, icon: Icon }) => value ? (
               <div key={label} className="bg-card rounded-xl border border-border/50 p-3 text-center">
                 <div className="text-xs text-muted-foreground mb-1 flex items-center justify-center gap-1">
@@ -209,15 +210,15 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
           {/* Risk & Reward */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="bg-secondary/30 rounded-lg p-4 border border-border/50">
-              <div className="text-xs text-muted-foreground mb-1">Estimated Risk</div>
+              <div className="text-xs text-muted-foreground mb-1">{t('trade_approval_estimated_risk')}</div>
               <div className="text-lg font-bold text-red-400 font-mono">{formatCurrency(trade.estimated_risk)}</div>
             </div>
             <div className="bg-secondary/30 rounded-lg p-4 border border-border/50">
-              <div className="text-xs text-muted-foreground mb-1">Estimated Reward</div>
+              <div className="text-xs text-muted-foreground mb-1">{t('trade_approval_estimated_reward')}</div>
               <div className="text-lg font-bold text-green-400 font-mono">{formatCurrency(trade.estimated_reward)}</div>
             </div>
             <div className="bg-secondary/30 rounded-lg p-4 border border-border/50">
-              <div className="text-xs text-muted-foreground mb-1">R:R Ratio</div>
+              <div className="text-xs text-muted-foreground mb-1">{t('trade_approval_rr_ratio')}</div>
               <div className="text-lg font-bold text-primary font-mono">{trade.rr_ratio?.toFixed(2)}:1</div>
             </div>
           </div>
@@ -225,23 +226,23 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
           {/* Scores */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="bg-card rounded-lg border border-border/50 p-3 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Confidence</div>
+              <div className="text-xs text-muted-foreground mb-1">{t('trade_approval_confidence')}</div>
               <div className={cn('text-lg font-bold font-mono', trade.confidence_score >= 70 ? 'text-green-400' : 'text-yellow-400')}>
                 {trade.confidence_score}%
               </div>
             </div>
             <div className="bg-card rounded-lg border border-border/50 p-3 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Risk Score</div>
+              <div className="text-xs text-muted-foreground mb-1">{t('trade_approval_risk_score')}</div>
               <div className={cn('text-lg font-bold font-mono', trade.risk_score <= 50 ? 'text-green-400' : trade.risk_score <= 70 ? 'text-yellow-400' : 'text-red-400')}>
                 {trade.risk_score}
               </div>
             </div>
             <div className="bg-card rounded-lg border border-border/50 p-3 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Position Size</div>
+              <div className="text-xs text-muted-foreground mb-1">{t('trade_approval_position_size')}</div>
               <div className="text-lg font-bold font-mono text-primary">{trade.position_size_pct?.toFixed(1)}%</div>
             </div>
             <div className="bg-card rounded-lg border border-border/50 p-3 text-center">
-              <div className="text-xs text-muted-foreground mb-1">Direction</div>
+              <div className="text-xs text-muted-foreground mb-1">{t('trade_approval_direction')}</div>
               <div className={cn('text-lg font-bold font-mono', trade.direction === 'buy' ? 'text-green-400' : 'text-red-400')}>
                 {trade.direction?.toUpperCase()}
               </div>
@@ -256,7 +257,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
             )}>
               <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
               <div>
-                <div className="text-sm font-medium text-foreground">Trade Validation</div>
+                <div className="text-sm font-medium text-foreground">{t('trade_approval_validation')}</div>
                 <p className="text-xs text-muted-foreground mt-1">{trade.validity_reason}</p>
               </div>
             </div>
@@ -285,8 +286,8 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
             <div className="flex items-center gap-3 mb-3">
               <Clock className="w-5 h-5 text-green-400" />
               <div>
-                <div className="text-sm font-semibold text-foreground">Order submitted to Kraken</div>
-                <div className="text-xs text-muted-foreground">Check Alerts for fill updates</div>
+                <div className="text-sm font-semibold text-foreground">{t('trade_approval_sent_to_kraken')}</div>
+                <div className="text-xs text-muted-foreground">{t('trade_approval_check_alerts')}</div>
               </div>
             </div>
             {statusMsg && (
@@ -307,7 +308,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
             variant="outline"
             className="sm:flex-1 border-destructive/50 text-destructive hover:bg-destructive/10"
           >
-            {rejecting ? 'Rejecting…' : 'Reject Trade'}
+            {rejecting ? t('trade_approval_rejecting') : t('trade_approval_reject')}
           </Button>
 
           {uiPhase !== 'validated' && (
@@ -316,7 +317,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
               disabled={busy}
               className="sm:flex-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30"
             >
-              {busy ? 'Validating…' : 'Validate (Test Mode)'}
+              {busy ? t('trade_approval_validating') : t('trade_approval_validate')}
             </Button>
           )}
 
@@ -326,7 +327,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
               disabled={busy}
               className="sm:flex-1 bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30"
             >
-              {busy ? 'Submitting…' : '⚡ Execute Live Order'}
+              {busy ? t('trade_approval_submitting') : t('trade_approval_execute_live')}
             </Button>
           )}
         </div>
@@ -334,7 +335,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
 
       {isRejected && (
         <div className="p-4 bg-destructive/5 border border-destructive/30 rounded-lg text-center">
-          <p className="text-sm text-destructive">Trade rejected{trade.rejected_at ? ` on ${new Date(trade.rejected_at).toLocaleString()}` : ''}</p>
+          <p className="text-sm text-destructive">{t('trade_approval_rejected_on')}{trade.rejected_at ? ` ${new Date(trade.rejected_at).toLocaleString()}` : ''}</p>
           {trade.rejection_reason && <p className="text-xs text-muted-foreground mt-1">{trade.rejection_reason}</p>}
         </div>
       )}
