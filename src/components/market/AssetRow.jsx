@@ -1,6 +1,7 @@
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { SignalBadge } from '@/components/ui/signal-badge';
 import { Link } from 'react-router-dom';
+import CryptoIcon from '@/components/ui/CryptoIcon';
 
 function PctChange({ value }) {
   if (value === undefined || value === null) return <span className="text-muted-foreground text-xs">—</span>;
@@ -32,12 +33,7 @@ export default function AssetRow({ asset, signal }) {
       <div className="flex items-center gap-3 sm:gap-4 px-4 py-3 hover:bg-muted/40 transition-colors cursor-pointer border-b border-border/50 last:border-0">
         {/* Symbol + icon */}
         <div className="flex items-center gap-2.5 flex-shrink-0 min-w-0 flex-1 sm:flex-none sm:w-32">
-          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-            {asset.image_url
-              ? <img src={asset.image_url} alt={asset.symbol} className="w-full h-full object-cover" />
-              : <span className="text-xs font-bold text-primary">{asset.symbol?.slice(0, 2)}</span>
-            }
-          </div>
+          <CryptoIcon symbol={asset.symbol} imageUrl={asset.image_url} size="md" />
           <div className="min-w-0">
             <div className="flex items-center gap-1">
               <span className="text-sm font-semibold text-foreground">{asset.symbol}</span>

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, X, Shield, Target } from 'lucide-react';
+import CryptoIcon from '@/components/ui/CryptoIcon';
 import { Button } from '@/components/ui/button';
 import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
@@ -129,9 +130,14 @@ export default function Positions() {
               <div key={p.id} className="bg-card border border-border rounded-xl p-5">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold',
-                      p.side === 'long' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive')}>
-                      {p.side?.toUpperCase().charAt(0)}
+                    <div className="relative">
+                      <CryptoIcon symbol={p.asset_symbol} size="lg" />
+                      <span className={cn(
+                        'absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full text-[8px] font-bold flex items-center justify-center',
+                        p.side === 'long' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                      )}>
+                        {p.side === 'long' ? '▲' : '▼'}
+                      </span>
                     </div>
                     <div>
                       <p className="font-bold text-foreground">{p.asset_symbol}</p>
@@ -201,6 +207,7 @@ export default function Positions() {
             <div key={p.id} className="bg-card border border-border/50 rounded-xl p-4 opacity-60">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
+                  <CryptoIcon symbol={p.asset_symbol} size="sm" />
                   <p className="font-semibold text-foreground">{p.asset_symbol}</p>
                   <span className="text-xs text-muted-foreground capitalize">{p.side}</span>
                 </div>

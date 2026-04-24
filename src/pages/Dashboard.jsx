@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useKrakenOrderStatus } from '@/hooks/useKrakenOrderStatus';
 import { DollarSign, TrendingUp, BarChart3, ShieldAlert, Activity, Zap, Cpu } from 'lucide-react';
+import CryptoIcon from '@/components/ui/CryptoIcon';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentSignals from '@/components/dashboard/RecentSignals';
 import RecentAlerts from '@/components/dashboard/RecentAlerts';
@@ -239,9 +240,7 @@ export default function Dashboard() {
           <div className="space-y-1.5 sm:space-y-2">
             {portfolio.slice(0, 5).map(asset => (
               <div key={asset.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/40 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
-                  {asset.asset_symbol?.slice(0, 2)}
-                </div>
+                <CryptoIcon symbol={asset.asset_symbol} size="md" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-foreground">{asset.asset_symbol}</div>
                   <div className="text-xs text-muted-foreground truncate">{asset.quantity} {t('dashboard_units')}</div>

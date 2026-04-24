@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Clock } from 'lucide-react';
+import CryptoIcon from '@/components/ui/CryptoIcon';
 import { Button } from '@/components/ui/button';
 import SignalBadge from '@/components/dashboard/SignalBadge';
 import ScoreBar from '@/components/dashboard/ScoreBar';
@@ -90,7 +91,7 @@ export default function AssetDetail() {
           <Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button>
         </Link>
         <div className="flex items-center gap-3 flex-1">
-          {asset.image_url && <img src={asset.image_url} className="w-10 h-10 rounded-full" alt={asset.symbol} />}
+          <CryptoIcon symbol={asset.symbol} imageUrl={asset.image_url} size="lg" />
           <div>
             <h1 className="text-xl font-bold text-foreground">{asset.name} <span className="text-muted-foreground font-normal">({asset.symbol})</span></h1>
             <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full capitalize', trendCls)}>

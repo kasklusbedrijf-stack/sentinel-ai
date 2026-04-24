@@ -5,6 +5,7 @@ import SignalBadge from '../shared/SignalBadge';
 import ScoreBar from '../shared/ScoreBar';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import CryptoIcon from '@/components/ui/CryptoIcon';
 
 export default function RecentSignals() {
   const { data: signals = [] } = useQuery({
@@ -26,6 +27,7 @@ export default function RecentSignals() {
         <div className="space-y-3">
           {signals.map(signal => (
             <div key={signal.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-accent transition-colors">
+              <CryptoIcon symbol={signal.asset_symbol} size="sm" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-semibold text-foreground">{signal.asset_symbol}</span>

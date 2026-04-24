@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Clock } from 'lucide-react';
+import CryptoIcon from '@/components/ui/CryptoIcon';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import { cn } from '@/lib/utils';
 
@@ -62,14 +63,13 @@ export default function TradeApprovalWidget() {
             <CardContent className="p-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  {trade.direction === 'buy' ? (
-                    <TrendingUp className="w-4 h-4 text-green-400 flex-shrink-0" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 text-red-400 flex-shrink-0" />
-                  )}
+                  <CryptoIcon symbol={trade.asset_symbol} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-foreground truncate">
-                      {trade.asset_symbol}
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span className="text-sm font-semibold text-foreground">{trade.asset_symbol}</span>
+                      {trade.direction === 'buy'
+                        ? <TrendingUp className="w-3 h-3 text-green-400 flex-shrink-0" />
+                        : <TrendingDown className="w-3 h-3 text-red-400 flex-shrink-0" />}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {t('trade_widget_entry')} {formatCurrency(trade.entry_price)}

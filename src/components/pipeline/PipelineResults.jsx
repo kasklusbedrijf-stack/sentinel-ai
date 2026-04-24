@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
+import CryptoIcon from '@/components/ui/CryptoIcon';
 
 function parseJSON(str) {
   if (!str) return null;
@@ -35,9 +36,7 @@ function ApprovedPlanCard({ plan }) {
         className="w-full flex items-center justify-between p-3.5 text-left"
       >
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center text-xs font-bold text-green-400 flex-shrink-0">
-            {plan.symbol?.slice(0, 2)}
-          </div>
+          <CryptoIcon symbol={plan.symbol} size="md" />
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-bold text-foreground">{plan.symbol}</span>
@@ -98,9 +97,7 @@ function ApprovedPlanCard({ plan }) {
 function BlockedPlanCard({ plan }) {
   return (
     <div className="flex items-start gap-3 p-3.5 rounded-xl border border-red-500/15 bg-red-500/5">
-      <div className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-xs font-bold text-red-400 flex-shrink-0 mt-0.5">
-        {plan.symbol?.slice(0, 2)}
-      </div>
+      <CryptoIcon symbol={plan.symbol} size="md" className="mt-0.5" />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-bold text-foreground">{plan.symbol}</span>

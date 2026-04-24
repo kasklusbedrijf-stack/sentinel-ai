@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2, DollarSign, TrendingUp } from 'lucide-react';
+import CryptoIcon from '@/components/ui/CryptoIcon';
 import { Button } from '@/components/ui/button';
 import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
@@ -132,9 +133,7 @@ export default function Portfolio() {
               <div key={a.id} className="bg-card border border-border rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-primary">
-                      {a.asset_symbol?.slice(0, 2)}
-                    </div>
+                    <CryptoIcon symbol={a.asset_symbol} size="md" />
                     <div>
                       <p className="font-bold text-foreground">{a.asset_symbol}</p>
                       <p className="text-xs text-muted-foreground">{a.asset_name}</p>
@@ -200,8 +199,13 @@ export default function Portfolio() {
                   {assets.map((a) => (
                     <tr key={a.id} className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors">
                       <td className="px-4 py-3">
-                        <p className="font-semibold text-foreground">{a.asset_symbol}</p>
-                        <p className="text-xs text-muted-foreground">{a.asset_name}</p>
+                        <div className="flex items-center gap-2.5">
+                          <CryptoIcon symbol={a.asset_symbol} size="sm" />
+                          <div>
+                            <p className="font-semibold text-foreground">{a.asset_symbol}</p>
+                            <p className="text-xs text-muted-foreground">{a.asset_name}</p>
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-right font-mono text-foreground">{a.quantity}</td>
                       <td className="px-4 py-3 text-right font-mono text-foreground">{formatCurrency(a.avg_buy_price)}</td>
