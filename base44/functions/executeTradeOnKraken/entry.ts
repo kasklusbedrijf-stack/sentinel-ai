@@ -1,13 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 // Helper: sign a Kraken private API request
-async function signKrakenRequest(apiPath, postData, apiSecret) {
+async function signKrakenRequest(apiPath, nonce, postData, apiSecret) {
   const encoder = new TextEncoder();
-  const messageHash = await crypto.subtle.digest(
-    'SHA-256',
-    encoder.encode(postData)
-  );
-  // Kraken signature = HMAC-SHA512(apiPath + SHA256(postData), base64decode(apiSecret))
+  
+  // SHA-256 of (nonce + postData)
+  const sha256Input = encoder.encode(nonce + postData);
+  const sha256Hash = await crypto.subtle.digest('SHA-256', sha256Input);
+  
+  // HMAC-SHA-512 key from secret
   const secretBytes = Uint8Array.from(atob(apiSecret), c => c.charCodeAt(0));
   const key = await crypto.subtle.importKey(
     'raw',
@@ -16,10 +17,13 @@ async function signKrakenRequest(apiPath, postData, apiSecret) {
     false,
     ['sign']
   );
+  
+  // Message = apiPath bytes + SHA-256 hash bytes
   const pathBytes = encoder.encode(apiPath);
-  const combined = new Uint8Array(pathBytes.length + messageHash.byteLength);
+  const combined = new Uint8Array(pathBytes.length + sha256Hash.byteLength);
   combined.set(pathBytes, 0);
-  combined.set(new Uint8Array(messageHash), pathBytes.length);
+  combined.set(new Uint8Array(sha256Hash), pathBytes.length);
+  
   const signature = await crypto.subtle.sign('HMAC', key, combined);
   return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
@@ -130,7 +134,7 @@ Deno.serve(async (req) => {
     const balanceNonce = Date.now().toString();
     const balancePostData = `nonce=${balanceNonce}`;
     const balancePath = '/0/private/Balance';
-    const balanceSig = await signKrakenRequest(balancePath, balanceNonce + balancePostData, krakenApiSecret);
+    const balanceSig = await signKrakenRequest(balancePath, balanceNonce, balancePostData, krakenApiSecret);
 
     const balanceResp = await fetch('https://api.kraken.com' + balancePath, {
       method: 'POST',
@@ -208,7 +212,7 @@ Deno.serve(async (req) => {
 
     const orderPath = '/0/private/AddOrder';
     const orderPostData = krakenParams.toString();
-    const orderSig = await signKrakenRequest(orderPath, orderNonce + orderPostData, krakenApiSecret);
+    const orderSig = await signKrakenRequest(orderPath, orderNonce, orderPostData, krakenApiSecret);
 
     const orderResp = await fetch('https://api.kraken.com' + orderPath, {
       method: 'POST',

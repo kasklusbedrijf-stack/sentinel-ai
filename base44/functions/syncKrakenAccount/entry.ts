@@ -51,6 +51,11 @@ async function krakenPost(path, apiKey, apiSecret) {
     },
     body: postData,
   });
+  
+  if (!res.ok) {
+    throw new Error(`Kraken HTTP ${res.status}: ${res.statusText}`);
+  }
+  
   return res.json();
 }
 
