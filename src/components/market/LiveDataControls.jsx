@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw, Clock } from 'lucide-react';
+import { RefreshCw, Wifi, WifiOff, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -29,6 +29,9 @@ export default function LiveDataControls({ onSynced, lastSyncedAt, className }) 
       if (res.data?.success) {
         setStatus('ok');
         if (onSynced) onSynced(res.data);
+      } else if (res.data?.rate_limited) {
+        setStatus('error');
+        setErrorMsg('Rate limited — wait 60s');
       } else {
         setStatus('error');
         setErrorMsg(res.data?.error || 'Sync failed');

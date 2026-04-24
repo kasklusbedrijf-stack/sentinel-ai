@@ -68,9 +68,20 @@ Deno.serve(async (req) => {
     const coinIds = COIN_CONFIG.map(c => c.id).join(',');
     const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=1h,24h,7d`;
 
-    const cgRes = await fetch(url, {
-      headers: { 'Accept': 'application/json' },
-    });
+    // Optional: CoinGecko Pro API key for higher rate limits
+    const cgApiKey = Deno.env.get('COINGECKO_API_KEY');
+    const headers = { 'Accept': 'application/json' };
+    if (cgApiKey) headers['x-cg-pro-api-key'] = cgApiKey;
+
+    const cgRes = await fetch(url, { headers });
+
+    if (cgRes.status === 429) {
+      return Response.json({
+        success: false,
+        error: 'CoinGecko rate limit hit. Wait 60 seconds before syncing again. For higher limits, add a COINGECKO_API_KEY in Settings.',
+        rate_limited: true,
+      }, { status: 200 }); // 200 so frontend handles gracefully
+    }
 
     if (!cgRes.ok) {
       const errorText = await cgRes.text();
