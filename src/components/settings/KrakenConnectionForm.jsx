@@ -49,7 +49,10 @@ export default function KrakenConnectionForm({ onConnectionStatusChange }) {
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await base44.functions.invoke('syncKrakenAccount', {});
+      const res = await base44.functions.invoke('syncKrakenAccount', {
+        api_key: apiKey.trim(),
+        api_secret: apiSecret.trim(),
+      });
       if (res.data?.success) {
         setConnectionStatus('connected');
         setTestResult({
@@ -61,10 +64,11 @@ export default function KrakenConnectionForm({ onConnectionStatusChange }) {
       } else if (res.data?.kraken_configured === false) {
         setConnectionStatus('not_configured');
         setTestResult({ error: 'API keys not found in environment. Contact support to add them.' });
+        toast.error('Not configured');
       } else {
         setConnectionStatus('failed');
         setTestResult({ error: res.data?.error || 'Connection test failed' });
-        toast.error('Connection test failed');
+        toast.error(res.data?.error || 'Connection test failed');
       }
     } catch (e) {
       setConnectionStatus('failed');
@@ -82,13 +86,38 @@ export default function KrakenConnectionForm({ onConnectionStatusChange }) {
 
     setSaving(true);
     try {
-      // Store keys in environment (this would require a backend function in production)
-      // For now, we just validate that they're non-empty
-      toast.success('Keys saved. Please contact support to add them to your environment variables.');
+      toast.info('Keys saved locally. Testing connection…');
       setFormDirty(false);
-      await handleTestConnection();
+      // Don't await — let testConnection run independently with UI updates
+      setTesting(true);
+      setTestResult(null);
+      const res = await base44.functions.invoke('syncKrakenAccount', {
+        api_key: apiKey.trim(),
+        api_secret: apiSecret.trim(),
+      });
+      if (res.data?.success) {
+        setConnectionStatus('connected');
+        setTestResult({
+          balance_count: res.data.balance_count,
+          open_order_count: res.data.open_order_count,
+          success: true,
+        });
+        toast.success('Kraken connection verified!');
+      } else if (res.data?.kraken_configured === false) {
+        setConnectionStatus('not_configured');
+        setTestResult({ error: 'API keys not found in environment. Contact support to add them.' });
+        toast.error('Not configured');
+      } else {
+        setConnectionStatus('failed');
+        setTestResult({ error: res.data?.error || 'Connection test failed' });
+        toast.error(res.data?.error || 'Connection test failed');
+      }
+      setTesting(false);
     } catch (e) {
+      setConnectionStatus('failed');
+      setTestResult({ error: e.message });
       toast.error('Failed to save keys: ' + e.message);
+      setTesting(false);
     }
     setSaving(false);
   };
