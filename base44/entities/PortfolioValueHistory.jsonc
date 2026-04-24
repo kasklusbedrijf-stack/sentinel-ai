@@ -1,0 +1,36 @@
+{
+  "name": "PortfolioValueHistory",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of the snapshot"
+    },
+    "total_value": {
+      "type": "number",
+      "description": "Total portfolio value at this point in time"
+    },
+    "total_pnl": {
+      "type": "number",
+      "description": "Unrealized PnL at this point"
+    },
+    "asset_count": {
+      "type": "number",
+      "description": "Number of assets held"
+    },
+    "snapshot_type": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "auto"
+      ],
+      "default": "auto",
+      "description": "Whether snapshot was manually triggered or automatic"
+    }
+  },
+  "required": [
+    "date",
+    "total_value"
+  ]
+}

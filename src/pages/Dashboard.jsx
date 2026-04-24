@@ -9,6 +9,7 @@ import RecentAlerts from '@/components/dashboard/RecentAlerts';
 import TradeApprovalWidget from '@/components/TradeApprovalWidget';
 import KrakenSyncControls from '@/components/market/KrakenSyncControls';
 import LiveDataControls from '@/components/market/LiveDataControls';
+import PortfolioValueChart from '@/components/dashboard/PortfolioValueChart';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SignalBadge, PnlText } from '@/components/ui/signal-badge';
@@ -41,6 +42,19 @@ export default function Dashboard() {
     // Detect last sync times from data sources
     const krakenAsset = p.find(x => x.data_source === 'kraken' && x.last_synced);
     if (krakenAsset) setKrakenLastSync(krakenAsset.last_synced);
+    
+    // Record portfolio value snapshot for history tracking
+    const totalValue = p.reduce((s, a) => s + (a.current_value || 0), 0);
+    const totalPnl = p.reduce((s, a) => s + (a.unrealized_pnl || 0), 0);
+    if (totalValue > 0) {
+      base44.entities.PortfolioValueHistory.create({
+        date: new Date().toISOString(),
+        total_value: totalValue,
+        total_pnl: totalPnl,
+        asset_count: p.length,
+      }).catch(() => {});
+    }
+    
     setLoading(false);
   };
 
@@ -169,6 +183,9 @@ export default function Dashboard() {
 
       {/* Pending Trade Approvals */}
       <TradeApprovalWidget />
+
+      {/* Portfolio chart */}
+      <PortfolioValueChart />
 
       {/* Content grid */}
       <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
