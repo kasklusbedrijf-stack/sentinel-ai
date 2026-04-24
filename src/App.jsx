@@ -20,6 +20,7 @@ import Alerts from '@/pages/Alerts';
 import Risk from '@/pages/Risk';
 import Audit from '@/pages/Audit';
 import Settings from '@/pages/Settings';
+import Connections from '@/pages/Connections';
 import TradeApproval from '@/pages/TradeApproval';
 import Pipeline from '@/pages/Pipeline';
 import DownloadArchive from '@/pages/DownloadArchive';
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
         <Route path="/risk" element={<Risk />} />
         <Route path="/audit" element={<Audit />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/connections" element={<Connections />} />
         <Route path="/trade-approval/:id" element={<TradeApproval />} />
         <Route path="/trade-approval" element={<TradeApproval />} />
         <Route path="/pipeline" element={<Pipeline />} />
