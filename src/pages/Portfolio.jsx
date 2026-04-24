@@ -7,6 +7,7 @@ import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import KrakenSyncControls from '@/components/market/KrakenSyncControls';
+import PortfolioPnlChart from '@/components/portfolio/PortfolioPnlChart';
 
 export default function Portfolio() {
   const [showAdd, setShowAdd] = useState(false);
@@ -71,6 +72,9 @@ export default function Portfolio() {
           </div>
         ))}
       </div>
+
+      {/* PnL Chart */}
+      {assets.length > 0 && <PortfolioPnlChart assets={assets} />}
 
       {/* Add Form */}
       {showAdd && (
