@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import {
   LayoutDashboard, TrendingUp, Briefcase, Zap, Settings,
-  Bell, Bot, ChevronRight, Menu, X, Shield, Activity, Search, Cpu
+  Bell, Bot, ChevronRight, Menu, X, Shield, Activity, Search, Cpu, Wifi
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,7 @@ const getNavItems = (t) => [
   { path: '/pipeline', label: 'AI Scout ✦', icon: Cpu },
   { path: '/alerts', label: t('nav_alerts'), icon: Bell },
   { path: '/risk', label: t('nav_risk'), icon: Shield },
+  { path: '/connections', label: 'Data Sources', icon: Wifi },
   { path: '/audit', label: t('nav_audit'), icon: Activity },
   { path: '/settings', label: t('nav_settings'), icon: Settings },
 ];
