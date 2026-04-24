@@ -123,7 +123,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
   if (!trade) {
     return (
       <div className="p-4 sm:p-6 text-center">
-        <p className="text-muted-foreground">{t('global_no_data')}</p>
+        <p className="text-muted-foreground">{t('trade_approval_no_trade')}</p>
       </div>
     );
   }
@@ -146,10 +146,10 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
           <h1 className="text-2xl font-bold text-foreground">{t('trade_approval_title')}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t('trade_approval_subtitle')}</p>
         </div>
-        {isExecuted && <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{t('status_sent')}</Badge>}
-        {isRejected && <Badge className="bg-destructive/20 text-destructive border-destructive/30">{t('status_rejected')}</Badge>}
-        {isActionable && uiPhase === 'idle' && <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">{t('status_test_mode')}</Badge>}
-        {isActionable && uiPhase === 'validated' && <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">{t('status_ready_to_execute')}</Badge>}
+        {isExecuted && <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{t('trade_status_sent')}</Badge>}
+        {isRejected && <Badge className="bg-destructive/20 text-destructive border-destructive/30">{t('trade_status_rejected')}</Badge>}
+        {isActionable && uiPhase === 'idle' && <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">{t('trade_status_test_mode')}</Badge>}
+        {isActionable && uiPhase === 'validated' && <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">{t('trade_status_ready')}</Badge>}
       </div>
 
       {/* Main Trade Summary */}
@@ -286,7 +286,7 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
             <div className="flex items-center gap-3 mb-3">
               <Clock className="w-5 h-5 text-green-400" />
               <div>
-                <div className="text-sm font-semibold text-foreground">{t('trade_approval_sent_to_kraken')}</div>
+                <div className="text-sm font-semibold text-foreground">{t('trade_approval_order_submitted')}</div>
                 <div className="text-xs text-muted-foreground">{t('trade_approval_check_alerts')}</div>
               </div>
             </div>

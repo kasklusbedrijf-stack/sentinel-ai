@@ -63,7 +63,7 @@ export default function Risk() {
       setSettingsId(created.id);
     }
     setSaving(false);
-    toast({ title: 'Risk settings saved', description: 'Your risk rules have been updated.' });
+    toast({ title: t('risk_saved'), description: t('risk_saved_desc') });
   };
 
   const triggerEmergencyStop = async () => {
@@ -79,7 +79,7 @@ export default function Risk() {
       action: 'emergency_stop', severity: 'critical',
       details: newVal ? 'Emergency stop activated by user.' : 'Emergency stop deactivated by user.',
     });
-    toast({ title: newVal ? '🚨 Emergency Stop Activated' : 'Emergency Stop Deactivated', variant: newVal ? 'destructive' : 'default' });
+    toast({ title: newVal ? `🚨 ${t('risk_emergency_active')}` : t('risk_emergency_stop'), variant: newVal ? 'destructive' : 'default' });
   };
 
   if (loading || !settings) return (
@@ -103,11 +103,11 @@ export default function Risk() {
             className={cn("gap-2 flex-1 sm:flex-none", settings.emergency_stop_active && "animate-pulse")}
           >
             <Power className="w-4 h-4" />
-            <span className="hidden xs:inline">{settings.emergency_stop_active ? 'Emergency STOP ON' : 'Emergency Stop'}</span>
-            <span className="xs:hidden">{settings.emergency_stop_active ? 'STOP ON' : 'E-Stop'}</span>
+            <span className="hidden xs:inline">{settings.emergency_stop_active ? t('risk_emergency_stop_on') : t('risk_emergency_stop')}</span>
+            <span className="xs:hidden">{settings.emergency_stop_active ? t('risk_emergency_stop_on') : t('risk_emergency_stop')}</span>
           </Button>
           <Button onClick={save} disabled={saving} size="sm" className="gap-2 flex-1 sm:flex-none">
-            <Save className="w-4 h-4" />{saving ? 'Saving…' : 'Save Settings'}
+            <Save className="w-4 h-4" />{saving ? `${t('global_save')}…` : t('risk_save_settings')}
           </Button>
         </div>
       </div>
@@ -116,8 +116,8 @@ export default function Risk() {
         <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0" />
           <div>
-            <div className="font-semibold text-destructive">Emergency Stop is ACTIVE</div>
-            <div className="text-sm text-muted-foreground">All automated trading is blocked. Manual approval is still available.</div>
+            <div className="font-semibold text-destructive">{t('risk_emergency_active')}</div>
+            <div className="text-sm text-muted-foreground">{t('risk_emergency_blocked')}</div>
           </div>
         </div>
       )}
@@ -125,14 +125,14 @@ export default function Risk() {
       {/* Trading Mode */}
       <Card className="bg-card border-border">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">Trading Mode</CardTitle>
-          <CardDescription className="text-xs">Controls how the AI interacts with trade execution</CardDescription>
+          <CardTitle className="text-sm font-semibold">{t('risk_trading_mode')}</CardTitle>
+          <CardDescription className="text-xs">{t('risk_trading_mode_desc')}</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { mode: 'analysis_only', label: 'Analysis Only', desc: 'AI analyzes only. No orders.', color: 'border-blue-400/40 bg-blue-400/5 text-blue-400' },
-            { mode: 'semi_auto', label: 'Semi-Auto', desc: 'AI suggests, you approve.', color: 'border-yellow-400/40 bg-yellow-400/5 text-yellow-400' },
-            { mode: 'auto', label: 'Auto Trading', desc: 'AI executes under risk rules.', color: 'border-red-400/40 bg-red-400/5 text-red-400' },
+            { mode: 'analysis_only', label: t('risk_mode_analysis'), desc: t('risk_mode_analysis_desc'), color: 'border-blue-400/40 bg-blue-400/5 text-blue-400' },
+            { mode: 'semi_auto', label: t('risk_mode_semi_auto'), desc: t('risk_mode_semi_auto_desc'), color: 'border-yellow-400/40 bg-yellow-400/5 text-yellow-400' },
+            { mode: 'auto', label: t('risk_mode_auto'), desc: t('risk_mode_auto_desc'), color: 'border-red-400/40 bg-red-400/5 text-red-400' },
           ].map(({ mode, label, desc, color }) => (
             <button
               key={mode}
@@ -150,38 +150,38 @@ export default function Risk() {
         {/* Position Risk */}
         <Card className="bg-card border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Position Risk Limits</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('risk_position_limits')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <SettingSlider label="Max Risk Per Trade" description="% of portfolio risked per trade" value={settings.max_risk_per_trade_pct} min={0.5} max={10} step={0.5} unit="%" onChange={v => update('max_risk_per_trade_pct', v)} />
-            <SettingSlider label="Max Daily Loss" description="Stop trading after % daily drawdown" value={settings.max_daily_loss_pct} min={1} max={20} step={0.5} unit="%" onChange={v => update('max_daily_loss_pct', v)} />
-            <SettingSlider label="Max Open Positions" description="Maximum concurrent open trades" value={settings.max_open_positions} min={1} max={20} onChange={v => update('max_open_positions', v)} />
-            <SettingSlider label="Auto-Pause After Losses" description="Pause after N consecutive losing trades" value={settings.auto_pause_after_losses} min={1} max={10} onChange={v => update('auto_pause_after_losses', v)} />
+            <SettingSlider label={t('risk_max_risk_per_trade')} description={t('risk_max_per_trade_desc')} value={settings.max_risk_per_trade_pct} min={0.5} max={10} step={0.5} unit="%" onChange={v => update('max_risk_per_trade_pct', v)} />
+            <SettingSlider label={t('risk_max_daily_loss')} description={t('risk_max_daily_loss_desc')} value={settings.max_daily_loss_pct} min={1} max={20} step={0.5} unit="%" onChange={v => update('max_daily_loss_pct', v)} />
+            <SettingSlider label={t('risk_max_open_positions')} description={t('risk_max_positions_desc')} value={settings.max_open_positions} min={1} max={20} onChange={v => update('max_open_positions', v)} />
+            <SettingSlider label={t('risk_auto_pause_losses')} description={t('risk_pause_losses_desc')} value={settings.auto_pause_after_losses} min={1} max={10} onChange={v => update('auto_pause_after_losses', v)} />
           </CardContent>
         </Card>
 
         {/* Exposure Limits */}
         <Card className="bg-card border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Exposure Limits</CardTitle>
+            <CardTitle className="text-sm font-semibold">{t('risk_exposure_limits')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <SettingSlider label="Max Single Coin Exposure" description="Max % of portfolio in one asset" value={settings.max_single_coin_exposure_pct} min={5} max={100} step={5} unit="%" onChange={v => update('max_single_coin_exposure_pct', v)} />
-            <SettingSlider label="Max Altcoin Exposure" description="Max total % in altcoins" value={settings.max_alt_exposure_pct} min={10} max={100} step={5} unit="%" onChange={v => update('max_alt_exposure_pct', v)} />
-            <SettingSlider label="Min Confidence Threshold" description="Minimum AI confidence to act" value={settings.min_confidence_threshold} min={30} max={95} unit="%" onChange={v => update('min_confidence_threshold', v)} />
-            <SettingSlider label="Min R:R Ratio" description="Minimum reward/risk ratio required" value={settings.min_rr_ratio} min={1} max={10} step={0.5} onChange={v => update('min_rr_ratio', v)} />
+            <SettingSlider label={t('risk_max_single_coin')} description={t('risk_single_coin_desc')} value={settings.max_single_coin_exposure_pct} min={5} max={100} step={5} unit="%" onChange={v => update('max_single_coin_exposure_pct', v)} />
+            <SettingSlider label={t('risk_max_alt_exposure')} description={t('risk_alt_exposure_desc')} value={settings.max_alt_exposure_pct} min={10} max={100} step={5} unit="%" onChange={v => update('max_alt_exposure_pct', v)} />
+            <SettingSlider label={t('risk_min_confidence')} description={t('risk_min_confidence_desc')} value={settings.min_confidence_threshold} min={30} max={95} unit="%" onChange={v => update('min_confidence_threshold', v)} />
+            <SettingSlider label={t('risk_min_rr_ratio')} description={t('risk_min_rr_desc')} value={settings.min_rr_ratio} min={1} max={10} step={0.5} onChange={v => update('min_rr_ratio', v)} />
           </CardContent>
         </Card>
       </div>
 
       {/* Toggle settings */}
       <Card className="bg-card border-border">
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Asset Filters & Safety</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t('risk_asset_filters')}</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { key: 'block_memecoins', label: 'Block Memecoins', desc: 'Prevent trading meme category assets' },
-            { key: 'block_high_risk', label: 'Block High-Risk', desc: 'Block assets with high risk score' },
-            { key: 'allow_auto_trading', label: 'Allow Auto Trading', desc: 'Enable automated order execution' },
+            { key: 'block_memecoins', label: t('risk_block_memecoins'), desc: t('risk_block_memecoins_desc') },
+            { key: 'block_high_risk', label: t('risk_block_high_risk'), desc: t('risk_block_high_risk_desc') },
+            { key: 'allow_auto_trading', label: t('risk_allow_auto_trading'), desc: t('risk_allow_auto_desc') },
           ].map(({ key, label, desc }) => (
             <div key={key} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30 border border-border">
               <Switch checked={!!settings[key]} onCheckedChange={v => update(key, v)} id={key} className="mt-0.5" />
