@@ -28,7 +28,7 @@ export default function Dashboard() {
     const [p, s, pos, a, rs] = await Promise.all([
       base44.entities.PortfolioAsset.list('-updated_date', 50),
       base44.entities.AISignal.list('-created_date', 10),
-      base44.entities.Position.filter({ status: 'OPEN' }, '-created_date', 20),
+      base44.entities.Position.filter({ status: 'open' }, '-created_date', 20),
       base44.entities.Alert.list('-created_date', 10),
       base44.entities.RiskSettings.list('-created_date', 1),
     ]);

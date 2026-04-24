@@ -31,8 +31,8 @@ export default function Positions() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['positions'] }),
   });
 
-  const open = positions.filter((p) => p.status === 'open');
-  const closed = positions.filter((p) => p.status !== 'open');
+  const open = positions.filter((p) => !p.status || p.status === 'open');
+  const closed = positions.filter((p) => p.status && p.status !== 'open');
 
   // Kraken WebSocket — subscribe to all pairs of open positions
   const openPairs = useMemo(() =>
@@ -111,10 +111,10 @@ export default function Positions() {
           {openPairs.length > 0 && <WsStatusDot status={wsStatus} />}
         </div>
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">{t('global_save')}...</div>
+          <div className="text-center py-8 text-muted-foreground">Loading positions…</div>
         ) : open.length === 0 ? (
           <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
-            {t('dashboard_open_positions')}
+            No open positions yet.
           </div>
         ) : (
           open.map((p) => {

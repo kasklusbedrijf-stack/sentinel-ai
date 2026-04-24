@@ -10,8 +10,22 @@
  * - Auth WS setup would require a separate backend token-vending endpoint
  */
 import { useEffect, useRef, useCallback } from 'react';
+import { base44 } from '@/api/base44Client';
 
 const POLL_INTERVAL_MS = 30_000;
+
+/**
+ * Checks if there are any open/sent ExchangeOrders before polling Kraken.
+ * This avoids unnecessary API calls when there are no live orders to track.
+ */
+async function hasPendingOrders() {
+  try {
+    const orders = await base44.entities.ExchangeOrder.filter({ status: 'sent' }, '-created_date', 1);
+    return orders.length > 0;
+  } catch {
+    return false;
+  }
+}
 
 export function useKrakenOrderStatus({ enabled = true, onUpdate }) {
   const timerRef = useRef(null);
@@ -20,8 +34,10 @@ export function useKrakenOrderStatus({ enabled = true, onUpdate }) {
 
   const poll = useCallback(async () => {
     if (!enabled) return;
+    // Only hit Kraken REST if there are actually open orders to track
+    const hasPending = await hasPendingOrders();
+    if (!hasPending) return;
     try {
-      const { base44 } = await import('@/api/base44Client');
       const res = await base44.functions.invoke('syncKrakenAccount', {});
       if (res.data?.success && onUpdateRef.current) {
         onUpdateRef.current(res.data);
@@ -33,8 +49,7 @@ export function useKrakenOrderStatus({ enabled = true, onUpdate }) {
 
   useEffect(() => {
     if (!enabled) return;
-    // Poll immediately, then on interval
-    poll();
+    // Only poll on interval — do NOT call immediately on mount (loadData() already runs on mount)
     timerRef.current = setInterval(poll, POLL_INTERVAL_MS);
     return () => clearInterval(timerRef.current);
   }, [enabled, poll]);
