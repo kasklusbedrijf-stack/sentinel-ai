@@ -38,6 +38,8 @@ export default function Market() {
 
   const signalMap = signals.reduce((m, s) => ({ ...m, [s.asset_symbol]: s }), {});
 
+  const get24h = a => a.change_24h ?? a.price_change_24h ?? 0;
+
   const filtered = assets
     .filter(a => {
       const matchSearch = a.symbol?.toLowerCase().includes(search.toLowerCase()) ||
@@ -51,7 +53,6 @@ export default function Market() {
       return (b.market_cap || 0) - (a.market_cap || 0);
     });
 
-  const get24h = a => a.change_24h ?? a.price_change_24h ?? 0;
   const gainers = [...assets].sort((a, b) => get24h(b) - get24h(a)).slice(0, 3);
   const losers  = [...assets].sort((a, b) => get24h(a) - get24h(b)).slice(0, 3);
 
