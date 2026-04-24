@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useKrakenOrderStatus } from '@/hooks/useKrakenOrderStatus';
 import { DollarSign, TrendingUp, BarChart3, ShieldAlert, Activity, Zap, Cpu } from 'lucide-react';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RecentSignals from '@/components/dashboard/RecentSignals';
@@ -43,6 +44,12 @@ export default function Dashboard() {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  // Auto-poll Kraken account every 30s if there are open exchange orders
+  useKrakenOrderStatus({
+    enabled: true,
+    onUpdate: () => loadData(),
+  });
 
   const totalValue = portfolio.reduce((s, a) => s + (a.current_value || 0), 0);
   const totalPnl = portfolio.reduce((s, a) => s + (a.unrealized_pnl || 0), 0);
@@ -108,13 +115,25 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Data sync row */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:items-center p-3 rounded-xl border border-border bg-card/50">
-        <span className="text-xs text-muted-foreground font-medium w-20 flex-shrink-0">Data sync</span>
-        <div className="flex flex-wrap gap-3">
-          <LiveDataControls lastSyncedAt={marketLastSync} onSynced={() => loadData()} />
-          <KrakenSyncControls lastSyncedAt={krakenLastSync} onSynced={(d) => { setKrakenLastSync(d.synced_at); loadData(); }} />
+      {/* Data sync row — explicit source labeling */}
+      <div className="flex flex-col gap-2 p-3 rounded-xl border border-border bg-card/50">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">Data Sources</span>
         </div>
+        <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+          {/* CoinGecko = public market layer */}
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            <span className="text-[10px] text-blue-400/80 font-medium uppercase tracking-wider">Market Overview · CoinGecko</span>
+            <LiveDataControls lastSyncedAt={marketLastSync} onSynced={() => loadData()} />
+          </div>
+          <div className="w-px h-8 bg-border hidden sm:block" />
+          {/* Kraken REST = account/execution layer */}
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            <span className="text-[10px] text-orange-400/80 font-medium uppercase tracking-wider">Account & Balances · Kraken REST</span>
+            <KrakenSyncControls lastSyncedAt={krakenLastSync} onSynced={(d) => { setKrakenLastSync(d.synced_at); loadData(); }} />
+          </div>
+        </div>
+        <p className="text-[10px] text-muted-foreground">Kraken WebSocket live prices: active on Positions &amp; Asset Detail pages</p>
       </div>
 
       {/* AI Scout trigger banner */}

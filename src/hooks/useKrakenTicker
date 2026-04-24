@@ -1,0 +1,122 @@
+/**
+ * useKrakenTicker
+ * Connects to Kraken WebSocket v2 and subscribes to live ticker updates.
+ * Source: wss://ws.kraken.com/v2 — public, no auth needed for ticker.
+ *
+ * Usage:
+ *   const { prices, status } = useKrakenTicker(['BTC/USD', 'ETH/USD']);
+ *   prices['BTC/USD'] → { last, bid, ask, change24h, symbol }
+ *   status → 'connecting' | 'connected' | 'disconnected' | 'error'
+ */
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+// Maps our internal symbol to Kraken WS pair format
+export function symbolToKrakenPair(symbol) {
+  const map = {
+    BTC: 'BTC/USD',
+    ETH: 'ETH/USD',
+    SOL: 'SOL/USD',
+    XRP: 'XRP/USD',
+    ADA: 'ADA/USD',
+    DOT: 'DOT/USD',
+    LINK: 'LINK/USD',
+    AVAX: 'AVAX/USD',
+    MATIC: 'MATIC/USD',
+    DOGE: 'DOGE/USD',
+    UNI: 'UNI/USD',
+    AAVE: 'AAVE/USD',
+    NEAR: 'NEAR/USD',
+    ARB: 'ARB/USD',
+    OP: 'OP/USD',
+    LTC: 'LTC/USD',
+  };
+  return map[symbol] || null;
+}
+
+export function useKrakenTicker(pairs = []) {
+  const [prices, setPrices] = useState({}); // keyed by pair e.g. 'BTC/USD'
+  const [status, setStatus] = useState('disconnected');
+  const wsRef = useRef(null);
+  const reconnectRef = useRef(null);
+  const mountedRef = useRef(true);
+
+  const connect = useCallback(() => {
+    if (!pairs || pairs.length === 0) return;
+    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+
+    setStatus('connecting');
+
+    const ws = new WebSocket('wss://ws.kraken.com/v2');
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      if (!mountedRef.current) return;
+      setStatus('connected');
+      ws.send(JSON.stringify({
+        method: 'subscribe',
+        params: {
+          channel: 'ticker',
+          symbol: pairs,
+        },
+      }));
+    };
+
+    ws.onmessage = (evt) => {
+      if (!mountedRef.current) return;
+      try {
+        const msg = JSON.parse(evt.data);
+        // Kraken WS v2: data events have type='update' or type='snapshot', channel='ticker'
+        if (msg.channel === 'ticker' && (msg.type === 'update' || msg.type === 'snapshot')) {
+          const updates = Array.isArray(msg.data) ? msg.data : [msg.data];
+          setPrices(prev => {
+            const next = { ...prev };
+            for (const tick of updates) {
+              if (!tick?.symbol) continue;
+              next[tick.symbol] = {
+                last: tick.last,
+                bid: tick.bid,
+                ask: tick.ask,
+                change24h: tick.change_pct ?? tick.change ?? null,
+                volume24h: tick.volume ?? null,
+                symbol: tick.symbol,
+                updatedAt: Date.now(),
+              };
+            }
+            return next;
+          });
+        }
+      } catch (_) {
+        // ignore parse errors
+      }
+    };
+
+    ws.onerror = () => {
+      if (!mountedRef.current) return;
+      setStatus('error');
+    };
+
+    ws.onclose = () => {
+      if (!mountedRef.current) return;
+      setStatus('disconnected');
+      // Reconnect after 5s
+      reconnectRef.current = setTimeout(() => {
+        if (mountedRef.current) connect();
+      }, 5000);
+    };
+  }, [pairs.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    mountedRef.current = true;
+    connect();
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(reconnectRef.current);
+      if (wsRef.current) {
+        wsRef.current.onclose = null; // prevent reconnect on intentional close
+        wsRef.current.close();
+      }
+    };
+  }, [connect]);
+
+  return { prices, status };
+}

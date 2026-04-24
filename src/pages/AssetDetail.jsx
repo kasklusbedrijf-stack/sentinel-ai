@@ -7,6 +7,8 @@ import SignalBadge from '@/components/dashboard/SignalBadge';
 import ScoreBar from '@/components/dashboard/ScoreBar';
 import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
+import { useKrakenTicker, symbolToKrakenPair } from '@/hooks/useKrakenTicker';
+import { KrakenLivePriceBadge, LivePriceDisplay } from '@/components/market/KrakenLivePrice';
 
 function formatRelativeTime(iso) {
   if (!iso) return null;
@@ -57,6 +59,12 @@ export default function AssetDetail() {
     enabled: !!asset?.symbol,
   });
 
+  // Kraken WebSocket — live price for this specific asset
+  const krakenPair = asset?.symbol ? symbolToKrakenPair(asset.symbol) : null;
+  const { prices: wsPrices, status: wsStatus } = useKrakenTicker(krakenPair ? [krakenPair] : []);
+  const wsPrice = krakenPair ? wsPrices[krakenPair]?.last : null;
+  const wsChange24h = krakenPair ? wsPrices[krakenPair]?.change24h : null;
+
   const latestSignal = signals[0];
 
   if (isLoading) return (
@@ -91,9 +99,14 @@ export default function AssetDetail() {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold font-mono text-foreground">${asset.current_price?.toLocaleString(undefined, { maximumFractionDigits: 6 })}</p>
-          <PriceChange value={asset.change_24h} className="justify-end" />
-          <div className="mt-1 flex justify-end">
+          <LivePriceDisplay
+            wsPrice={wsPrice}
+            fallbackPrice={asset.current_price}
+            className="text-3xl font-bold text-foreground"
+          />
+          <PriceChange value={wsChange24h ?? asset.change_24h} className="justify-end" />
+          <div className="mt-1.5 flex justify-end gap-1.5 flex-wrap">
+            {krakenPair && <KrakenLivePriceBadge status={wsStatus} />}
             <DataSourceBadge source={asset.data_source} lastSynced={asset.last_synced} />
           </div>
         </div>

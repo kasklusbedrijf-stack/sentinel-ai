@@ -154,7 +154,7 @@ export default function Market() {
         {/* Header — desktop only */}
         <div className="hidden sm:flex items-center gap-4 px-4 py-2.5 border-b border-border bg-muted/30 text-xs font-medium text-muted-foreground">
           <div className="w-32 flex-shrink-0">Asset</div>
-          <div className="w-28 flex-shrink-0">Price</div>
+          <div className="w-28 flex-shrink-0">Price <span className="text-blue-400/70">(CoinGecko)</span></div>
           <div className="hidden sm:flex gap-4 flex-1">
             <div className="w-16 text-center">1H</div>
             <div className="w-16 text-center">24H</div>

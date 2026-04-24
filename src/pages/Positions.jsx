@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, X, Shield, Target } from 'lucide-react';
@@ -7,6 +7,8 @@ import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import { useAppPreferences as useT } from '@/lib/AppPreferencesContext';
+import { useKrakenTicker, symbolToKrakenPair } from '@/hooks/useKrakenTicker';
+import { WsStatusDot } from '@/components/market/KrakenLivePrice';
 
 export default function Positions() {
   const [showAdd, setShowAdd] = useState(false);
@@ -31,6 +33,13 @@ export default function Positions() {
 
   const open = positions.filter((p) => p.status === 'open');
   const closed = positions.filter((p) => p.status !== 'open');
+
+  // Kraken WebSocket — subscribe to all pairs of open positions
+  const openPairs = useMemo(() =>
+    [...new Set(open.map(p => symbolToKrakenPair(p.asset_symbol)).filter(Boolean))],
+    [open]
+  );
+  const { prices: wsPrices, status: wsStatus } = useKrakenTicker(openPairs);
 
   return (
     <div className="space-y-5 p-4 sm:p-6">
@@ -97,7 +106,10 @@ export default function Positions() {
 
       {/* Open positions */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('positions_open')} ({open.length})</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('positions_open')} ({open.length})</h2>
+          {openPairs.length > 0 && <WsStatusDot status={wsStatus} />}
+        </div>
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">{t('global_save')}...</div>
         ) : open.length === 0 ? (
@@ -106,7 +118,13 @@ export default function Positions() {
           </div>
         ) : (
           open.map((p) => {
-            const pnl = p.current_price && p.entry_price ? ((p.current_price - p.entry_price) / p.entry_price * 100) : 0;
+            const pair = symbolToKrakenPair(p.asset_symbol);
+            const livePrice = pair ? wsPrices[pair]?.last : null;
+            const displayPrice = livePrice ?? p.current_price;
+            const pnl = displayPrice && p.entry_price
+              ? ((displayPrice - p.entry_price) / p.entry_price * 100)
+              : 0;
+            const liveValue = displayPrice && p.quantity ? displayPrice * p.quantity : p.position_value;
             return (
               <div key={p.id} className="bg-card border border-border rounded-xl p-5">
                 <div className="flex items-start justify-between mb-4">
@@ -122,7 +140,7 @@ export default function Positions() {
                   </div>
                   <div className="flex items-center gap-2">
                      <PriceChange value={pnl} />
-                     <span className="text-sm font-mono text-foreground">{formatCurrency(p.position_value)}</span>
+                     <span className="text-sm font-mono text-foreground">{formatCurrency(liveValue)}</span>
                     <button onClick={() => updatePosition.mutate({ id: p.id, data: { status: 'closed' } })}
                       className="text-muted-foreground hover:text-destructive transition-colors ml-2">
                       <X className="w-4 h-4" />
@@ -137,8 +155,10 @@ export default function Positions() {
                      <p className="font-mono font-semibold text-foreground">{formatCurrency(p.entry_price)}</p>
                    </div>
                    <div className="text-center p-2 bg-secondary/50 rounded-lg">
-                     <p className="text-xs text-muted-foreground">Current</p>
-                     <p className="font-mono font-semibold text-foreground">{formatCurrency(p.current_price)}</p>
+                     <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                       Current {livePrice && <span className="w-1 h-1 rounded-full bg-green-400 animate-pulse inline-block" />}
+                     </p>
+                     <p className="font-mono font-semibold text-foreground">{formatCurrency(displayPrice)}</p>
                    </div>
                    <div className="text-center p-2 bg-secondary/50 rounded-lg">
                      <p className="text-xs text-muted-foreground">Risk %</p>

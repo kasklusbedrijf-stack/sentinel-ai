@@ -1,0 +1,41 @@
+/**
+ * useKrakenOrderStatus
+ * Polls Kraken account sync every 30s when there are open ExchangeOrders.
+ * Source: Kraken REST API (private) via syncKrakenAccount backend function.
+ * Used on: Positions page, Dashboard
+ *
+ * This is intentionally polling (not WS) because:
+ * - Order fill events require auth (Kraken WS private channel needs token refresh)
+ * - 30s poll is sufficient for order status tracking
+ * - Auth WS setup would require a separate backend token-vending endpoint
+ */
+import { useEffect, useRef, useCallback } from 'react';
+
+const POLL_INTERVAL_MS = 30_000;
+
+export function useKrakenOrderStatus({ enabled = true, onUpdate }) {
+  const timerRef = useRef(null);
+  const onUpdateRef = useRef(onUpdate);
+  onUpdateRef.current = onUpdate;
+
+  const poll = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      const { base44 } = await import('@/api/base44Client');
+      const res = await base44.functions.invoke('syncKrakenAccount', {});
+      if (res.data?.success && onUpdateRef.current) {
+        onUpdateRef.current(res.data);
+      }
+    } catch (_) {
+      // silent — polling failures shouldn't break UI
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    // Poll immediately, then on interval
+    poll();
+    timerRef.current = setInterval(poll, POLL_INTERVAL_MS);
+    return () => clearInterval(timerRef.current);
+  }, [enabled, poll]);
+}
