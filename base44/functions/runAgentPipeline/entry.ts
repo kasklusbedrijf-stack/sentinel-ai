@@ -17,6 +17,17 @@ Deno.serve(async (req) => {
     const pipelineId = pipeline.id;
 
     // ─────────────────────────────────────────────
+    // PRE-STEP: Refresh live market data from CoinGecko before scanning
+    // This ensures agents work with current prices, not stale DB data
+    // ─────────────────────────────────────────────
+    try {
+      await base44.asServiceRole.functions.invoke('syncCoinGeckoMarket', {});
+    } catch (syncErr) {
+      // Non-fatal: if CoinGecko sync fails, continue with existing data
+      console.warn('CoinGecko pre-sync failed, using cached data:', syncErr.message);
+    }
+
+    // ─────────────────────────────────────────────
     // STEP 1: MARKET WATCHER — scan available assets for setups
     // ─────────────────────────────────────────────
     const assets = await base44.asServiceRole.entities.Asset.list('-market_cap', 30);
@@ -53,7 +64,15 @@ Deno.serve(async (req) => {
       rr: s.reward_risk_ratio,
     }));
 
+    // Note how many assets have fresh CoinGecko data
+    const liveAssets = assets.filter(a => a.data_source === 'coingecko' && a.last_synced);
+    const dataFreshness = liveAssets.length > 0
+      ? `LIVE data from CoinGecko (${liveAssets.length} assets synced, latest: ${liveAssets[0]?.last_synced})`
+      : 'Cached data (CoinGecko not yet synced — prices may not be current)';
+
     const marketWatcherPrompt = `You are Market Watcher, a senior crypto market analyst. Your job is to scan the available market data and shortlist the BEST 3-5 trade setups right now.
+
+DATA SOURCE: ${dataFreshness}
 
 MARKET DATA (top 20 assets by market cap):
 ${JSON.stringify(assetSummary, null, 2)}

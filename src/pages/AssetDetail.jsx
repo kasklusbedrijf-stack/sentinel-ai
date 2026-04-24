@@ -1,12 +1,35 @@
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Star, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { ArrowLeft, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SignalBadge from '@/components/dashboard/SignalBadge';
 import ScoreBar from '@/components/dashboard/ScoreBar';
 import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
+
+function formatRelativeTime(iso) {
+  if (!iso) return null;
+  const diffMin = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (diffMin < 1) return 'just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  return `${Math.floor(diffMin / 60)}h ago`;
+}
+
+function DataSourceBadge({ source, lastSynced }) {
+  if (!source || source === 'manual') return null;
+  return (
+    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-blue-500/20 bg-blue-500/5">
+      <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+      <span className="text-xs text-blue-400 font-medium capitalize">{source}</span>
+      {lastSynced && (
+        <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <Clock className="w-3 h-3" />{formatRelativeTime(lastSynced)}
+        </span>
+      )}
+    </div>
+  );
+}
 
 const trendColors = {
   strong_bullish: 'text-green-400 bg-green-400/10',
@@ -70,6 +93,9 @@ export default function AssetDetail() {
         <div className="text-right">
           <p className="text-3xl font-bold font-mono text-foreground">${asset.current_price?.toLocaleString(undefined, { maximumFractionDigits: 6 })}</p>
           <PriceChange value={asset.change_24h} className="justify-end" />
+          <div className="mt-1 flex justify-end">
+            <DataSourceBadge source={asset.data_source} lastSynced={asset.last_synced} />
+          </div>
         </div>
       </div>
 

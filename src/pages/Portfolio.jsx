@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import PriceChange from '@/components/dashboard/PriceChange';
 import { cn } from '@/lib/utils';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
-import { useAppPreferences as useT } from '@/lib/AppPreferencesContext';
+import KrakenSyncControls from '@/components/market/KrakenSyncControls';
 
 export default function Portfolio() {
   const [showAdd, setShowAdd] = useState(false);
@@ -14,9 +14,16 @@ export default function Portfolio() {
   const queryClient = useQueryClient();
   const { formatCurrency, t } = useAppPreferences();
 
-  const { data: assets = [], isLoading } = useQuery({
+  const [krakenLastSync, setKrakenLastSync] = useState(null);
+
+  const { data: assets = [], isLoading, refetch } = useQuery({
     queryKey: ['portfolio'],
-    queryFn: () => base44.entities.PortfolioAsset.list('-current_value', 100),
+    queryFn: async () => {
+      const data = await base44.entities.PortfolioAsset.list('-current_value', 100);
+      const synced = data.find(x => x.data_source === 'kraken' && x.last_synced);
+      if (synced) setKrakenLastSync(synced.last_synced);
+      return data;
+    },
   });
 
   const addAsset = useMutation({
@@ -35,14 +42,20 @@ export default function Portfolio() {
 
   return (
     <div className="space-y-5 p-4 sm:p-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('portfolio_holdings')}</h1>
           <p className="text-muted-foreground text-sm mt-0.5">{t('portfolio_total_value')}</p>
         </div>
-        <Button onClick={() => setShowAdd(!showAdd)} size="sm" className="gap-1.5 flex-shrink-0">
-          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t('portfolio_add_holding')}</span><span className="sm:hidden">{t('global_save')}</span>
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <KrakenSyncControls
+            lastSyncedAt={krakenLastSync}
+            onSynced={(d) => { setKrakenLastSync(d.synced_at); refetch(); }}
+          />
+          <Button onClick={() => setShowAdd(!showAdd)} size="sm" className="gap-1.5">
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">{t('portfolio_add_holding')}</span><span className="sm:hidden">Add</span>
+          </Button>
+        </div>
       </div>
 
       {/* Summary Row */}

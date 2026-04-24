@@ -12,19 +12,37 @@ function PctChange({ value }) {
   );
 }
 
+function trendFromStatus(status) {
+  if (!status) return null;
+  if (status === 'strong_bullish' || status === 'bullish') return 'UP';
+  if (status === 'strong_bearish' || status === 'bearish') return 'DOWN';
+  return 'NEUTRAL';
+}
+
 export default function AssetRow({ asset, signal }) {
-  const trend = asset.trend_1d;
+  // Support both old field names (price_change_*) and new CoinGecko field names (change_*)
+  const change1h  = asset.change_1h  ?? asset.price_change_1h;
+  const change24h = asset.change_24h ?? asset.price_change_24h;
+  const change7d  = asset.change_7d  ?? asset.price_change_7d;
+  const trend = trendFromStatus(asset.trend_status) || (asset.trend_1d === 'UP' ? 'UP' : asset.trend_1d === 'DOWN' ? 'DOWN' : 'NEUTRAL');
+  const isLive = asset.data_source === 'coingecko';
 
   return (
     <Link to={`/asset/${asset.id}`}>
       <div className="flex items-center gap-3 sm:gap-4 px-4 py-3 hover:bg-muted/40 transition-colors cursor-pointer border-b border-border/50 last:border-0">
-        {/* Symbol */}
+        {/* Symbol + icon */}
         <div className="flex items-center gap-2.5 flex-shrink-0 min-w-0 flex-1 sm:flex-none sm:w-32">
-          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
-            {asset.symbol?.slice(0, 2)}
+          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+            {asset.image_url
+              ? <img src={asset.image_url} alt={asset.symbol} className="w-full h-full object-cover" />
+              : <span className="text-xs font-bold text-primary">{asset.symbol?.slice(0, 2)}</span>
+            }
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-foreground">{asset.symbol}</div>
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-semibold text-foreground">{asset.symbol}</span>
+              {isLive && <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" title="Live CoinGecko data" />}
+            </div>
             <div className="text-xs text-muted-foreground truncate max-w-[80px]">{asset.name}</div>
           </div>
         </div>
@@ -36,25 +54,25 @@ export default function AssetRow({ asset, signal }) {
           </div>
           {/* 24h change visible on mobile only */}
           <div className="sm:hidden">
-            <PctChange value={asset.price_change_24h} />
+            <PctChange value={change24h} />
           </div>
         </div>
 
         {/* Changes — sm and up */}
         <div className="hidden sm:flex gap-4 flex-1">
-          <div className="w-16 text-center"><PctChange value={asset.price_change_1h} /></div>
-          <div className="w-16 text-center"><PctChange value={asset.price_change_24h} /></div>
-          <div className="w-16 text-center"><PctChange value={asset.price_change_7d} /></div>
+          <div className="w-16 text-center"><PctChange value={change1h} /></div>
+          <div className="w-16 text-center"><PctChange value={change24h} /></div>
+          <div className="w-16 text-center"><PctChange value={change7d} /></div>
         </div>
 
         {/* Trend */}
         <div className="hidden md:flex items-center gap-1 w-20 flex-shrink-0">
           {trend === 'UP' && <TrendingUp className="w-3.5 h-3.5 text-green-400" />}
           {trend === 'DOWN' && <TrendingDown className="w-3.5 h-3.5 text-red-400" />}
-          {trend === 'SIDEWAYS' && <Minus className="w-3.5 h-3.5 text-muted-foreground" />}
-          <span className={`text-xs font-medium ${
+          {trend === 'NEUTRAL' && <Minus className="w-3.5 h-3.5 text-muted-foreground" />}
+          <span className={`text-xs font-medium capitalize ${
             trend === 'UP' ? 'text-green-400' : trend === 'DOWN' ? 'text-red-400' : 'text-muted-foreground'
-          }`}>{trend}</span>
+          }`}>{trend?.toLowerCase()}</span>
         </div>
 
         {/* Signal */}

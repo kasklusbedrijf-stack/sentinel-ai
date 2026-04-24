@@ -88,6 +88,16 @@
     "is_watchlisted": {
       "type": "boolean",
       "default": false
+    },
+    "data_source": {
+      "type": "string",
+      "description": "coingecko | manual | mock",
+      "default": "manual"
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp of last data sync"
     }
   },
   "required": [

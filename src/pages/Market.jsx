@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Search, TrendingUp, TrendingDown, Filter } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import AssetRow from '@/components/market/AssetRow';
+import LiveDataControls from '@/components/market/LiveDataControls';
 
 const CATEGORIES = ['All', 'Layer1', 'Layer2', 'DeFi', 'AI', 'Meme', 'Stablecoin', 'Exchange', 'Other'];
 
@@ -16,19 +17,24 @@ export default function Market() {
   const [category, setCategory] = useState('All');
   const [sortBy, setSortBy] = useState('market_cap');
   const [loading, setLoading] = useState(true);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
 
-  useEffect(() => {
-    async function load() {
-      const [a, s] = await Promise.all([
-        base44.entities.Asset.list('-market_cap', 100),
-        base44.entities.AISignal.filter({ status: 'ACTIVE' }, '-created_date', 100),
-      ]);
-      setAssets(a);
-      setSignals(s);
-      setLoading(false);
+  const loadAssets = async () => {
+    const [a, s] = await Promise.all([
+      base44.entities.Asset.list('-market_cap', 100),
+      base44.entities.AISignal.filter({ status: 'ACTIVE' }, '-created_date', 100),
+    ]);
+    setAssets(a);
+    setSignals(s);
+    // Pick the most recent last_synced from CoinGecko-sourced assets
+    const synced = a.filter(x => x.data_source === 'coingecko' && x.last_synced);
+    if (synced.length > 0) {
+      setLastSyncedAt(synced.sort((a, b) => new Date(b.last_synced) - new Date(a.last_synced))[0].last_synced);
     }
-    load();
-  }, []);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadAssets(); }, []);
 
   const signalMap = signals.reduce((m, s) => ({ ...m, [s.asset_symbol]: s }), {});
 
@@ -36,25 +42,32 @@ export default function Market() {
     .filter(a => {
       const matchSearch = a.symbol?.toLowerCase().includes(search.toLowerCase()) ||
         a.name?.toLowerCase().includes(search.toLowerCase());
-      const matchCat = category === 'All' || a.category === category;
-      return matchSearch && matchCat;
+      const matchCat = category === 'All' || a.category?.toLowerCase() === category.toLowerCase() || category === 'All';
+      return matchSearch && (category === 'All' || matchCat);
     })
     .sort((a, b) => {
-      if (sortBy === 'change_24h') return (b.price_change_24h || 0) - (a.price_change_24h || 0);
-      if (sortBy === 'change_7d') return (b.price_change_7d || 0) - (a.price_change_7d || 0);
+      if (sortBy === 'change_24h') return get24h(b) - get24h(a);
       if (sortBy === 'volume') return (b.volume_24h || 0) - (a.volume_24h || 0);
       return (b.market_cap || 0) - (a.market_cap || 0);
     });
 
-  const gainers = [...assets].sort((a, b) => (b.price_change_24h || 0) - (a.price_change_24h || 0)).slice(0, 3);
-  const losers = [...assets].sort((a, b) => (a.price_change_24h || 0) - (b.price_change_24h || 0)).slice(0, 3);
+  const get24h = a => a.change_24h ?? a.price_change_24h ?? 0;
+  const gainers = [...assets].sort((a, b) => get24h(b) - get24h(a)).slice(0, 3);
+  const losers  = [...assets].sort((a, b) => get24h(a) - get24h(b)).slice(0, 3);
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
-      <div>
-         <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('market_title')}</h1>
-         <p className="text-sm text-muted-foreground mt-0.5">{t('dashboard_active_signals')}</p>
-       </div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">{t('market_title')}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{t('dashboard_active_signals')}</p>
+        </div>
+        <LiveDataControls
+          lastSyncedAt={lastSyncedAt}
+          onSynced={() => loadAssets()}
+          className="sm:mt-1"
+        />
+      </div>
 
       {/* Gainers / Losers */}
       <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
@@ -68,7 +81,7 @@ export default function Market() {
               <div key={a.id} className="flex items-center justify-between gap-1 min-w-0">
                 <span className="text-xs sm:text-sm font-mono text-foreground truncate">{a.symbol}</span>
                 <span className="text-xs sm:text-sm font-mono font-bold text-green-400 flex-shrink-0">
-                  +{a.price_change_24h?.toFixed(2)}%
+                  +{get24h(a)?.toFixed(2)}%
                 </span>
               </div>
             ))}
@@ -84,7 +97,7 @@ export default function Market() {
               <div key={a.id} className="flex items-center justify-between gap-1 min-w-0">
                 <span className="text-xs sm:text-sm font-mono text-foreground truncate">{a.symbol}</span>
                 <span className="text-xs sm:text-sm font-mono font-bold text-red-400 flex-shrink-0">
-                  {a.price_change_24h?.toFixed(2)}%
+                  {get24h(a)?.toFixed(2)}%
                 </span>
               </div>
             ))}

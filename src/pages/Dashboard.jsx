@@ -5,6 +5,8 @@ import StatsCard from '@/components/dashboard/StatsCard';
 import RecentSignals from '@/components/dashboard/RecentSignals';
 import RecentAlerts from '@/components/dashboard/RecentAlerts';
 import TradeApprovalWidget from '@/components/TradeApprovalWidget';
+import KrakenSyncControls from '@/components/market/KrakenSyncControls';
+import LiveDataControls from '@/components/market/LiveDataControls';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SignalBadge, PnlText } from '@/components/ui/signal-badge';
@@ -17,26 +19,30 @@ export default function Dashboard() {
   const [alerts, setAlerts] = useState([]);
   const [riskSettings, setRiskSettings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [krakenLastSync, setKrakenLastSync] = useState(null);
+  const [marketLastSync, setMarketLastSync] = useState(null);
   const { formatCurrency, t } = useAppPreferences();
 
-  useEffect(() => {
-    async function load() {
-      const [p, s, pos, a, rs] = await Promise.all([
-        base44.entities.PortfolioAsset.list('-updated_date', 50),
-        base44.entities.AISignal.list('-created_date', 10),
-        base44.entities.Position.filter({ status: 'OPEN' }, '-created_date', 20),
-        base44.entities.Alert.list('-created_date', 10),
-        base44.entities.RiskSettings.list('-created_date', 1),
-      ]);
-      setPortfolio(p);
-      setSignals(s);
-      setPositions(pos);
-      setAlerts(a);
-      setRiskSettings(rs[0] || null);
-      setLoading(false);
-    }
-    load();
-  }, []);
+  const loadData = async () => {
+    const [p, s, pos, a, rs] = await Promise.all([
+      base44.entities.PortfolioAsset.list('-updated_date', 50),
+      base44.entities.AISignal.list('-created_date', 10),
+      base44.entities.Position.filter({ status: 'OPEN' }, '-created_date', 20),
+      base44.entities.Alert.list('-created_date', 10),
+      base44.entities.RiskSettings.list('-created_date', 1),
+    ]);
+    setPortfolio(p);
+    setSignals(s);
+    setPositions(pos);
+    setAlerts(a);
+    setRiskSettings(rs[0] || null);
+    // Detect last sync times from data sources
+    const krakenAsset = p.find(x => x.data_source === 'kraken' && x.last_synced);
+    if (krakenAsset) setKrakenLastSync(krakenAsset.last_synced);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadData(); }, []);
 
   const totalValue = portfolio.reduce((s, a) => s + (a.current_value || 0), 0);
   const totalPnl = portfolio.reduce((s, a) => s + (a.unrealized_pnl || 0), 0);
@@ -100,6 +106,15 @@ export default function Dashboard() {
           subtitle={`${unreadAlerts} ${t('alerts_unread')}`}
           icon={Zap}
         />
+      </div>
+
+      {/* Data sync row */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center p-3 rounded-xl border border-border bg-card/50">
+        <span className="text-xs text-muted-foreground font-medium w-20 flex-shrink-0">Data sync</span>
+        <div className="flex flex-wrap gap-3">
+          <LiveDataControls lastSyncedAt={marketLastSync} onSynced={() => loadData()} />
+          <KrakenSyncControls lastSyncedAt={krakenLastSync} onSynced={(d) => { setKrakenLastSync(d.synced_at); loadData(); }} />
+        </div>
       </div>
 
       {/* AI Scout trigger banner */}

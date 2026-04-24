@@ -34,6 +34,15 @@
     },
     "category": {
       "type": "string"
+    },
+    "data_source": {
+      "type": "string",
+      "description": "kraken | manual",
+      "default": "manual"
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
