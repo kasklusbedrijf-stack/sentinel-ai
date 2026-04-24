@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import PriceChange from '../shared/PriceChange';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import CryptoIcon from '@/components/ui/CryptoIcon';
 
 export default function TopAssets() {
   const { data: assets = [] } = useQuery({
@@ -24,10 +25,8 @@ export default function TopAssets() {
       ) : (
         <div className="space-y-2">
           {assets.map(asset => (
-            <Link key={asset.id} to={`/market/${asset.id}`} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                {asset.symbol?.substring(0, 2)}
-              </div>
+            <Link key={asset.id} to={`/asset/${asset.id}`} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
+              <CryptoIcon symbol={asset.symbol} imageUrl={asset.image_url} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground">{asset.symbol}</p>
                 <p className="text-xs text-muted-foreground">{asset.name}</p>

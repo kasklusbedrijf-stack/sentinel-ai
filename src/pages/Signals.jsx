@@ -100,11 +100,15 @@ export default function Signals() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                  <span className={cn("text-[10px] sm:text-xs font-bold px-2 py-1 rounded-lg border font-mono whitespace-nowrap flex-shrink-0 mt-0.5", signalColors[signal.signal_type])}>
-                    {signal.signal_type}
-                  </span>
+                  <CryptoIcon symbol={signal.asset_symbol} size="md" className="flex-shrink-0 mt-0.5" />
                   <div className="min-w-0">
-                    <div className="font-bold text-sm">{signal.asset_symbol} <span className="text-muted-foreground font-normal text-xs">{signal.asset_name}</span></div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-bold text-sm">{signal.asset_symbol}</span>
+                      <span className="text-muted-foreground font-normal text-xs">{signal.asset_name}</span>
+                      <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border font-mono whitespace-nowrap", signalColors[signal.signal_type])}>
+                        {signal.signal_type}
+                      </span>
+                    </div>
                     <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 sm:truncate sm:max-w-sm">{signal.summary}</div>
                   </div>
                 </div>

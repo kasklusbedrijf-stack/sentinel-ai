@@ -63,13 +63,18 @@ export default function TradeApprovalWidget() {
             <CardContent className="p-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <CryptoIcon symbol={trade.asset_symbol} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <span className="text-sm font-semibold text-foreground">{trade.asset_symbol}</span>
+                  <div className="relative flex-shrink-0">
+                    <CryptoIcon symbol={trade.asset_symbol} size="sm" />
+                    <span className={cn('absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full flex items-center justify-center',
+                      trade.direction === 'buy' ? 'bg-green-500' : 'bg-red-500')}>
                       {trade.direction === 'buy'
-                        ? <TrendingUp className="w-3 h-3 text-green-400 flex-shrink-0" />
-                        : <TrendingDown className="w-3 h-3 text-red-400 flex-shrink-0" />}
+                        ? <TrendingUp className="w-1.5 h-1.5 text-white" />
+                        : <TrendingDown className="w-1.5 h-1.5 text-white" />}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-foreground truncate">
+                      {trade.asset_symbol}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {t('trade_widget_entry')} {formatCurrency(trade.entry_price)}
