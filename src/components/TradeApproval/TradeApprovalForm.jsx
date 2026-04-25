@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, CheckCircle2, Clock, TrendingUp, TrendingDown, DollarSign, Shield, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import OrderSizeCheck from './OrderSizeCheck';
 
 export function TradeApprovalForm({
   trade,
@@ -22,7 +23,9 @@ export function TradeApprovalForm({
   onValidate,
   onExecute,
   onReject,
-  statusMsg
+  statusMsg,
+  orderCheck,        // structured data from backend response
+  statusIsError,     // true when statusMsg is an error (not validated)
 }) {
   return (
     <>
@@ -123,6 +126,11 @@ export function TradeApprovalForm({
             </div>
           </div>
 
+          {/* Kraken Order Size Check — shown always when actionable */}
+          {isActionable && (
+            <OrderSizeCheck trade={trade} orderCheck={orderCheck} />
+          )}
+
           {/* Validity Status */}
           {trade.validity_reason && (
             <div className={cn(
@@ -143,13 +151,17 @@ export function TradeApprovalForm({
       {statusMsg && (
         <div className={cn(
           'p-4 rounded-lg border flex items-start gap-3',
-          uiPhase === 'validated' ? 'bg-green-500/5 border-green-500/30' : 'bg-destructive/5 border-destructive/30'
+          uiPhase === 'validated'
+            ? 'bg-green-500/5 border-green-500/30'
+            : statusIsError
+            ? 'bg-destructive/5 border-destructive/30'
+            : 'bg-blue-500/5 border-blue-500/30'
         )}>
           {uiPhase === 'validated'
             ? <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-            : <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+            : <AlertCircle className={cn('w-5 h-5 flex-shrink-0 mt-0.5', statusIsError ? 'text-destructive' : 'text-blue-400')} />
           }
-          <p className="text-sm text-foreground">{statusMsg}</p>
+          <p className="text-sm text-foreground leading-relaxed">{statusMsg}</p>
         </div>
       )}
 

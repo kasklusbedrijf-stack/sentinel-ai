@@ -16,6 +16,8 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
   const [rejecting, setRejecting] = useState(false);
   const [uiPhase, setUiPhase] = useState('idle');
   const [statusMsg, setStatusMsg] = useState(null);
+  const [statusIsError, setStatusIsError] = useState(false);
+  const [orderCheck, setOrderCheck] = useState(null);
 
   const resolvedId = tradeApprovalId || routeId;
   const handleBack = onBack || (() => navigate(-1));

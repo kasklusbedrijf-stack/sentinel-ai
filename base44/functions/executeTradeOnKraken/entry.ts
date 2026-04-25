@@ -268,18 +268,36 @@ Deno.serve(async (req) => {
 
     // Enforce Kraken minimum order volume
     const minVol = KRAKEN_MIN_VOLUME[trade.asset_symbol.toUpperCase()] ?? 1;
-    if (quantity < minVol) {
-      return Response.json({
-        success: false,
-        error: `Order volume too small: calculated ${quantity} ${trade.asset_symbol} (minimum is ${minVol}). ` +
-               `USD amount: $${usdAmount.toFixed(2)}, entry price: $${entryPrice}. ` +
-               `Increase position size or add USD balance.`,
-      }, { status: 400 });
-    }
+    const minUsdRequired = minVol * entryPrice;
+
+    // Always attach order_check to every response for UI transparency
+    const order_check = {
+      symbol: trade.asset_symbol,
+      pair: krakenPair,
+      calculated_volume: quantity,
+      min_volume: minVol,
+      usd_amount: usdAmount,
+      usd_balance: usdBalance,
+      entry_price: entryPrice,
+      min_usd_required: minUsdRequired,
+      passes: quantity >= minVol && quantity > 0,
+    };
+
     if (quantity <= 0) {
       return Response.json({
         success: false,
-        error: `Calculated volume is zero. USD amount: $${usdAmount.toFixed(2)}, entry price: $${entryPrice}, USD balance: $${usdBalance.toFixed(2)}.`,
+        error_code: 'VOLUME_ZERO',
+        error: `Calculated volume is zero.`,
+        order_check,
+      }, { status: 400 });
+    }
+
+    if (quantity < minVol) {
+      return Response.json({
+        success: false,
+        error_code: 'VOLUME_TOO_SMALL',
+        error: `Order volume too small for Kraken minimum.`,
+        order_check,
       }, { status: 400 });
     }
 
@@ -345,6 +363,17 @@ Deno.serve(async (req) => {
         success: true,
         validation_mode: true,
         message: 'Order validated by Kraken. No order was submitted.',
+        order_check: {
+          symbol: trade.asset_symbol,
+          pair: krakenPair,
+          calculated_volume: quantity,
+          min_volume: KRAKEN_MIN_VOLUME[trade.asset_symbol.toUpperCase()] ?? 1,
+          usd_amount: usdBalance > 0 ? (parseFloat(trade.estimated_risk || 0) > 0 ? parseFloat(trade.estimated_risk) : (parseFloat(trade.position_size_pct || 1) / 100) * usdBalance) : 0,
+          usd_balance: usdBalance,
+          entry_price: entryPrice,
+          min_usd_required: (KRAKEN_MIN_VOLUME[trade.asset_symbol.toUpperCase()] ?? 1) * entryPrice,
+          passes: true,
+        },
         test_data: {
           pair: krakenPair,
           direction: trade.direction,
