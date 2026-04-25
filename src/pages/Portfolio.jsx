@@ -10,99 +10,6 @@ import { useAppPreferences } from '@/lib/AppPreferencesContext';
 import KrakenSyncControls from '@/components/market/KrakenSyncControls';
 import PortfolioPnlChart from '@/components/portfolio/PortfolioPnlChart';
 
-function CryptoAssetCard({ a, formatCurrency, deleteAsset }) {
-  return (
-    <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <CryptoIcon symbol={a.asset_symbol} size="md" />
-          <div>
-            <p className="font-bold text-foreground">{a.asset_symbol}</p>
-            <p className="text-xs text-muted-foreground">{a.asset_name}</p>
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="font-mono font-semibold text-foreground">{formatCurrency(a.current_value)}</p>
-          <p className="text-xs text-muted-foreground">{a.allocation_pct?.toFixed(1)}% alloc.</p>
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-2 text-xs">
-        <div className="bg-secondary/50 rounded-lg p-2 text-center">
-          <p className="text-muted-foreground mb-0.5">Qty</p>
-          <p className="font-mono font-semibold text-foreground">{a.quantity}</p>
-        </div>
-        <div className="bg-secondary/50 rounded-lg p-2 text-center">
-          <p className="text-muted-foreground mb-0.5">Avg Buy</p>
-          <p className="font-mono font-semibold text-foreground">{formatCurrency(a.avg_buy_price)}</p>
-        </div>
-        <div className="bg-secondary/50 rounded-lg p-2 text-center">
-          <p className="text-muted-foreground mb-0.5">Current</p>
-          <p className="font-mono font-semibold text-foreground">{formatCurrency(a.current_price)}</p>
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div>
-            <p className="text-xs text-muted-foreground">Unrealized PnL</p>
-            <div className="flex items-center gap-1">
-              <PriceChange value={a.unrealized_pnl_pct} showIcon={false} />
-              <span className="text-xs text-muted-foreground">({formatCurrency(a.unrealized_pnl)})</span>
-            </div>
-          </div>
-          {a.realized_pnl !== undefined && (
-            <div>
-              <p className="text-xs text-muted-foreground">Realized</p>
-              <span className={cn('text-xs font-medium font-mono', a.realized_pnl >= 0 ? 'text-green-400' : 'text-destructive')}>
-                {a.realized_pnl >= 0 ? '+' : ''}${a.realized_pnl?.toFixed(2)}
-              </span>
-            </div>
-          )}
-        </div>
-        <button onClick={() => deleteAsset.mutate(a.id)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function CryptoAssetRow({ a, formatCurrency, deleteAsset }) {
-  return (
-    <tr className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors">
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <CryptoIcon symbol={a.asset_symbol} size="sm" />
-          <div>
-            <p className="font-semibold text-foreground">{a.asset_symbol}</p>
-            <p className="text-xs text-muted-foreground">{a.asset_name}</p>
-          </div>
-        </div>
-      </td>
-      <td className="px-4 py-3 text-right font-mono text-foreground">{a.quantity}</td>
-      <td className="px-4 py-3 text-right font-mono text-foreground">{formatCurrency(a.avg_buy_price)}</td>
-      <td className="px-4 py-3 text-right font-mono text-foreground">{formatCurrency(a.current_price)}</td>
-      <td className="px-4 py-3 text-right font-mono font-semibold text-foreground">{formatCurrency(a.current_value)}</td>
-      <td className="px-4 py-3 text-right text-muted-foreground">{a.allocation_pct?.toFixed(1)}%</td>
-      <td className="px-4 py-3 text-right">
-        <PriceChange value={a.unrealized_pnl_pct} showIcon={false} />
-        <p className="text-xs text-muted-foreground">{formatCurrency(a.unrealized_pnl)}</p>
-      </td>
-      <td className="px-4 py-3 text-right">
-        {a.realized_pnl !== undefined ? (
-          <span className={cn('text-sm font-medium', a.realized_pnl >= 0 ? 'text-green-400' : 'text-destructive')}>
-            {a.realized_pnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(a.realized_pnl)).slice(1)}
-          </span>
-        ) : <span className="text-muted-foreground">—</span>}
-      </td>
-      <td className="px-4 py-3 text-right">
-        <button onClick={() => deleteAsset.mutate(a.id)} className="text-muted-foreground hover:text-destructive transition-colors">
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </td>
-    </tr>
-  );
-}
-
 export default function Portfolio() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ asset_symbol: '', asset_name: '', quantity: '', avg_buy_price: '', category: '' });
@@ -131,12 +38,14 @@ export default function Portfolio() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['portfolio'] }),
   });
 
-  const cryptoAssets = assets.filter(a => a.category !== 'fiat');
+  // Split fiat vs crypto
   const fiatAssets = assets.filter(a => a.category === 'fiat');
+  const cryptoAssets = assets.filter(a => a.category !== 'fiat');
 
   const totalValue = assets.reduce((s, a) => s + (a.current_value || 0), 0);
   const totalPnl = cryptoAssets.reduce((s, a) => s + (a.unrealized_pnl || 0), 0);
   const totalRealized = cryptoAssets.reduce((s, a) => s + (a.realized_pnl || 0), 0);
+  const totalCash = fiatAssets.reduce((s, a) => s + (a.current_value || 0), 0);
 
   return (
     <div className="space-y-5 p-4 sm:p-6">
@@ -157,15 +66,16 @@ export default function Portfolio() {
       </div>
 
       {/* Summary Row */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: t('portfolio_total_value'), value: formatCurrency(totalValue), icon: DollarSign },
-          { label: t('portfolio_unrealized_pnl'), value: `${totalPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalPnl))}`, icon: TrendingUp, positive: totalPnl >= 0 },
-          { label: t('portfolio_realized_pnl'), value: `${totalRealized >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalRealized))}`, icon: TrendingUp, positive: totalRealized >= 0 },
+          { label: t('portfolio_total_value'), value: formatCurrency(totalValue), color: 'text-foreground' },
+          { label: 'Cash (Fiat)', value: formatCurrency(totalCash), color: 'text-blue-400' },
+          { label: t('portfolio_unrealized_pnl'), value: `${totalPnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalPnl))}`, color: totalPnl >= 0 ? 'text-green-400' : 'text-destructive' },
+          { label: t('portfolio_realized_pnl'), value: `${totalRealized >= 0 ? '+' : ''}${formatCurrency(Math.abs(totalRealized))}`, color: totalRealized >= 0 ? 'text-green-400' : 'text-destructive' },
         ].map((s) => (
           <div key={s.label} className="bg-card border border-border rounded-xl p-3 sm:p-5">
             <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">{s.label}</p>
-            <p className={cn('text-base sm:text-2xl font-bold mt-1 font-mono truncate', s.positive !== undefined ? (s.positive ? 'text-green-400' : 'text-destructive') : 'text-foreground')}>{s.value}</p>
+            <p className={cn('text-base sm:text-2xl font-bold mt-1 font-mono truncate', s.color)}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -214,7 +124,7 @@ export default function Portfolio() {
         </div>
       )}
 
-      {/* Asset Sections */}
+      {/* Asset sections */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12"><div className="w-6 h-6 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>
       ) : assets.length === 0 ? (
@@ -225,17 +135,67 @@ export default function Portfolio() {
         <>
           {/* ── Crypto Holdings ── */}
           {cryptoAssets.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
                 <Coins className="w-4 h-4 text-primary" />
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Crypto Holdings</h2>
-                <span className="text-xs text-muted-foreground ml-1">· {cryptoAssets.length} assets</span>
+                <span className="text-xs text-muted-foreground ml-auto">{cryptoAssets.length} asset{cryptoAssets.length !== 1 ? 's' : ''}</span>
               </div>
 
               {/* Mobile cards */}
               <div className="space-y-3 md:hidden">
                 {cryptoAssets.map((a) => (
-                  <CryptoAssetCard key={a.id} a={a} formatCurrency={formatCurrency} deleteAsset={deleteAsset} />
+                  <div key={a.id} className="bg-card border border-border rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CryptoIcon symbol={a.asset_symbol} size="md" />
+                        <div>
+                          <p className="font-bold text-foreground">{a.asset_symbol}</p>
+                          <p className="text-xs text-muted-foreground">{a.asset_name}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono font-semibold text-foreground">{formatCurrency(a.current_value)}</p>
+                        <p className="text-xs text-muted-foreground">{a.allocation_pct?.toFixed(1)}% alloc.</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="bg-secondary/50 rounded-lg p-2 text-center">
+                        <p className="text-muted-foreground mb-0.5">Qty</p>
+                        <p className="font-mono font-semibold text-foreground">{Number(a.quantity).toLocaleString('en-US', { maximumFractionDigits: 6 })}</p>
+                      </div>
+                      <div className="bg-secondary/50 rounded-lg p-2 text-center">
+                        <p className="text-muted-foreground mb-0.5">Avg Buy</p>
+                        <p className="font-mono font-semibold text-foreground">{formatCurrency(a.avg_buy_price)}</p>
+                      </div>
+                      <div className="bg-secondary/50 rounded-lg p-2 text-center">
+                        <p className="text-muted-foreground mb-0.5">Current</p>
+                        <p className="font-mono font-semibold text-foreground">{formatCurrency(a.current_price)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Unrealized PnL</p>
+                          <div className="flex items-center gap-1">
+                            <PriceChange value={a.unrealized_pnl_pct} showIcon={false} />
+                            <span className="text-xs text-muted-foreground">({formatCurrency(a.unrealized_pnl)})</span>
+                          </div>
+                        </div>
+                        {a.realized_pnl !== undefined && (
+                          <div>
+                            <p className="text-xs text-muted-foreground">Realized</p>
+                            <span className={cn('text-xs font-medium font-mono', a.realized_pnl >= 0 ? 'text-green-400' : 'text-destructive')}>
+                              {a.realized_pnl >= 0 ? '+' : ''}${a.realized_pnl?.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <button onClick={() => deleteAsset.mutate(a.id)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
 
@@ -245,14 +205,45 @@ export default function Portfolio() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border bg-secondary/50">
-                        {['Asset', 'Quantity', 'Avg Buy', 'Current Price', 'Value', 'Alloc.', 'Unrealized PnL', 'Realized PnL', ''].map((h) => (
+                        {['Asset', 'Quantity', 'Avg Buy', 'Current Price', 'Value', 'Allocation', 'Unrealized PnL', 'Realized PnL', ''].map((h) => (
                           <th key={h} className={cn('px-4 py-3 text-xs text-muted-foreground font-semibold uppercase tracking-wider', h === 'Asset' ? 'text-left' : 'text-right')}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {cryptoAssets.map((a) => (
-                        <CryptoAssetRow key={a.id} a={a} formatCurrency={formatCurrency} deleteAsset={deleteAsset} />
+                        <tr key={a.id} className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <CryptoIcon symbol={a.asset_symbol} size="sm" />
+                              <div>
+                                <p className="font-semibold text-foreground">{a.asset_symbol}</p>
+                                <p className="text-xs text-muted-foreground">{a.asset_name}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right font-mono text-foreground">{Number(a.quantity).toLocaleString('en-US', { maximumFractionDigits: 8 })}</td>
+                          <td className="px-4 py-3 text-right font-mono text-foreground">{formatCurrency(a.avg_buy_price)}</td>
+                          <td className="px-4 py-3 text-right font-mono text-foreground">{formatCurrency(a.current_price)}</td>
+                          <td className="px-4 py-3 text-right font-mono font-semibold text-foreground">{formatCurrency(a.current_value)}</td>
+                          <td className="px-4 py-3 text-right text-muted-foreground">{a.allocation_pct?.toFixed(1)}%</td>
+                          <td className="px-4 py-3 text-right">
+                            <PriceChange value={a.unrealized_pnl_pct} showIcon={false} />
+                            <p className="text-xs text-muted-foreground">{formatCurrency(a.unrealized_pnl)}</p>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {a.realized_pnl !== undefined ? (
+                              <span className={cn('text-sm font-medium', a.realized_pnl >= 0 ? 'text-green-400' : 'text-destructive')}>
+                                {a.realized_pnl >= 0 ? '+' : ''}${formatCurrency(Math.abs(a.realized_pnl)).slice(1)}
+                              </span>
+                            ) : <span className="text-muted-foreground">—</span>}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button onClick={() => deleteAsset.mutate(a.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
                       ))}
                     </tbody>
                   </table>
@@ -263,15 +254,18 @@ export default function Portfolio() {
 
           {/* ── Cash Balances ── */}
           {fiatAssets.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
                 <Banknote className="w-4 h-4 text-blue-400" />
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Cash Balances</h2>
                 <span className="text-xs text-muted-foreground ml-1">· Kraken account</span>
+                <span className="text-xs text-muted-foreground ml-auto font-mono">{formatCurrency(totalCash)} total</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+              {/* Mobile cards */}
+              <div className="space-y-2 md:hidden">
                 {fiatAssets.map((a) => (
-                  <div key={a.id} className="bg-card border border-blue-500/20 rounded-xl p-4 flex items-center justify-between">
+                  <div key={a.id} className="bg-card border border-blue-500/10 rounded-xl p-4 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-bold text-blue-400">{a.asset_symbol}</span>
@@ -283,13 +277,65 @@ export default function Portfolio() {
                     </div>
                     <div className="text-right">
                       <p className="font-mono font-semibold text-foreground">
-                        {a.asset_symbol === 'USD' ? '$' : a.asset_symbol === 'EUR' ? '€' : a.asset_symbol === 'GBP' ? '£' : ''}{Number(a.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {a.asset_symbol === 'USD'
+                          ? `$${Number(a.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : a.asset_symbol === 'EUR'
+                          ? `€${Number(a.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                          : `${Number(a.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${a.asset_symbol}`}
                       </p>
-                      <p className="text-xs text-muted-foreground">≈ {formatCurrency(a.current_value)}</p>
-                      <p className="text-xs text-blue-400/70 mt-0.5">{a.allocation_pct?.toFixed(1)}% of portfolio</p>
+                      <p className="text-xs text-muted-foreground">≈ {formatCurrency(a.current_value)} · {a.allocation_pct?.toFixed(1)}%</p>
                     </div>
+                    <button onClick={() => deleteAsset.mutate(a.id)} className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors flex-shrink-0">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden md:block bg-card border border-blue-500/10 rounded-xl overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/30">
+                      {['Currency', 'Balance', 'Rate (USD)', 'USD Value', 'Allocation', 'Source', ''].map((h) => (
+                        <th key={h} className={cn('px-4 py-3 text-xs text-muted-foreground font-semibold uppercase tracking-wider', h === 'Currency' ? 'text-left' : 'text-right')}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fiatAssets.map((a) => (
+                      <tr key={a.id} className="border-b border-border/50 last:border-0 hover:bg-secondary/20 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                              <span className="text-[9px] font-bold text-blue-400">{a.asset_symbol}</span>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-foreground">{a.asset_symbol}</p>
+                              <p className="text-xs text-muted-foreground">{a.asset_name}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-foreground">
+                          {Number(a.quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-muted-foreground">
+                          {a.asset_symbol === 'USD' ? '1.00' : `~${a.current_price?.toFixed(4)}`}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono font-semibold text-foreground">{formatCurrency(a.current_value)}</td>
+                        <td className="px-4 py-3 text-right text-muted-foreground">{a.allocation_pct?.toFixed(1)}%</td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">Kraken</span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button onClick={() => deleteAsset.mutate(a.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
