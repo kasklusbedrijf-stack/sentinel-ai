@@ -194,7 +194,6 @@ Deno.serve(async (req) => {
     }
 
     // --- Pair mapping: Kraken uses non-standard pair names ---
-    // Reference: https://support.kraken.com/hc/en-us/articles/360001668466
     const KRAKEN_PAIR_MAP = {
       BTC:  'XBTUSD',
       ETH:  'ETHUSD',
@@ -223,9 +222,8 @@ Deno.serve(async (req) => {
     };
     const krakenPair = KRAKEN_PAIR_MAP[trade.asset_symbol.toUpperCase()] || `${trade.asset_symbol.toUpperCase()}USD`;
 
-    // --- Kraken minimum order volumes (in base asset units) ---
-    // https://support.kraken.com/hc/en-us/articles/205893708
-    const KRAKEN_MIN_VOLUME = {
+    // --- Local fallback minimum order volumes (used only if Kraken AssetPairs API fails) ---
+    const KRAKEN_MIN_VOLUME_FALLBACK = {
       BTC:  0.0001,
       ETH:  0.002,
       SOL:  0.5,
@@ -252,6 +250,43 @@ Deno.serve(async (req) => {
       PEPE: 5000000,
     };
 
+    // --- Fetch real pair rules from Kraken public AssetPairs API (no auth needed) ---
+    let minVol = KRAKEN_MIN_VOLUME_FALLBACK[trade.asset_symbol.toUpperCase()] ?? 1;
+    let minVolumeSource = 'fallback_table';
+    let pairInfo = null;
+
+    try {
+      const pairsResp = await fetch(`https://api.kraken.com/0/public/AssetPairs?pair=${encodeURIComponent(krakenPair)}`);
+      if (pairsResp.ok) {
+        const pairsData = await pairsResp.json();
+        if (!pairsData.error || pairsData.error.length === 0) {
+          // Result keys may differ from the queried pair name (e.g. "SOLUSD" vs "SOLXBT")
+          const pairKey = Object.keys(pairsData.result || {})[0];
+          if (pairKey) {
+            const info = pairsData.result[pairKey];
+            const realMin = parseFloat(info.ordermin);
+            if (realMin > 0) {
+              minVol = realMin;
+              minVolumeSource = 'kraken_api';
+            }
+            pairInfo = {
+              altname: info.altname,
+              wsname: info.wsname,
+              base: info.base,
+              quote: info.quote,
+              ordermin: info.ordermin,
+              lot_decimals: info.lot_decimals,
+              pair_decimals: info.pair_decimals,
+              cost_decimals: info.cost_decimals,
+              costmin: info.costmin,
+            };
+          }
+        }
+      }
+    } catch (pairErr) {
+      console.warn('[executeTradeOnKraken] AssetPairs fetch failed, using fallback:', pairErr.message);
+    }
+
     const entryPrice = parseFloat(trade.edited_entry || trade.entry_price);
     const usdBalance = parseFloat(balanceData.result?.['ZUSD'] ?? balanceData.result?.['USD'] ?? 0);
 
@@ -263,11 +298,14 @@ Deno.serve(async (req) => {
       : (parseFloat(trade.position_size_pct || 1) / 100) * usdBalance;
 
     let quantity = entryPrice > 0 ? usdAmount / entryPrice : 0;
-    // Round to 8 decimal places (Kraken max precision)
-    quantity = Math.round(quantity * 1e8) / 1e8;
+    // Round to lot_decimals from pair info, or default 8
+    const lotDecimals = pairInfo?.lot_decimals ?? 8;
+    const lotFactor = Math.pow(10, lotDecimals);
+    quantity = Math.round(quantity * lotFactor) / lotFactor;
 
-    // Enforce Kraken minimum order volume
-    const minVol = KRAKEN_MIN_VOLUME[trade.asset_symbol.toUpperCase()] ?? 1;
+    // Also enforce costmin if provided by Kraken (minimum order cost in quote currency)
+    const costMin = pairInfo?.costmin ? parseFloat(pairInfo.costmin) : null;
+
     const minUsdRequired = minVol * entryPrice;
 
     // Always attach order_check to every response for UI transparency
@@ -276,6 +314,9 @@ Deno.serve(async (req) => {
       pair: krakenPair,
       calculated_volume: quantity,
       min_volume: minVol,
+      min_volume_source: minVolumeSource,
+      pair_info: pairInfo,
+      cost_min: costMin,
       usd_amount: usdAmount,
       usd_balance: usdBalance,
       entry_price: entryPrice,
@@ -364,14 +405,7 @@ Deno.serve(async (req) => {
         validation_mode: true,
         message: 'Order validated by Kraken. No order was submitted.',
         order_check: {
-          symbol: trade.asset_symbol,
-          pair: krakenPair,
-          calculated_volume: quantity,
-          min_volume: KRAKEN_MIN_VOLUME[trade.asset_symbol.toUpperCase()] ?? 1,
-          usd_amount: usdBalance > 0 ? (parseFloat(trade.estimated_risk || 0) > 0 ? parseFloat(trade.estimated_risk) : (parseFloat(trade.position_size_pct || 1) / 100) * usdBalance) : 0,
-          usd_balance: usdBalance,
-          entry_price: entryPrice,
-          min_usd_required: (KRAKEN_MIN_VOLUME[trade.asset_symbol.toUpperCase()] ?? 1) * entryPrice,
+          ...order_check,
           passes: true,
         },
         test_data: {
