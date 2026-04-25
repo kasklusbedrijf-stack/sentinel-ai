@@ -126,11 +126,6 @@ export function TradeApprovalForm({
             </div>
           </div>
 
-          {/* Kraken Order Size Check — shown always when actionable */}
-          {isActionable && (
-            <OrderSizeCheck trade={trade} orderCheck={orderCheck} />
-          )}
-
           {/* Validity Status */}
           {trade.validity_reason && (
             <div className={cn(
@@ -183,6 +178,11 @@ export function TradeApprovalForm({
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Kraken Order Size Check — always visible for non-executed trades */}
+      {!isExecuted && !isRejected && (
+        <OrderSizeCheck trade={trade} orderCheck={orderCheck} />
       )}
 
       {/* Actions */}
