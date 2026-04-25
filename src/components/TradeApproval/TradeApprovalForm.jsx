@@ -161,7 +161,7 @@ export function TradeApprovalForm({
             ? <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
             : <AlertCircle className={cn('w-5 h-5 flex-shrink-0 mt-0.5', statusIsError ? 'text-destructive' : 'text-blue-400')} />
           }
-          <p className="text-sm text-foreground leading-relaxed">{statusMsg}</p>
+          <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{statusMsg}</p>
         </div>
       )}
 

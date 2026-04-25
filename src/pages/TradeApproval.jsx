@@ -40,6 +40,8 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
     if (!trade) return;
     setBusy(true);
     setStatusMsg(null);
+    setStatusIsError(false);
+    setOrderCheck(null);
     try {
       if (trade.status === 'pending') {
         await base44.entities.TradeApproval.update(trade.id, {
@@ -52,21 +54,65 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
         trade_approval_id: trade.id,
         validation_only: true,
       });
-      if (result.data.success) {
+      const data = result.data;
+      if (data.order_check) setOrderCheck(data.order_check);
+
+      if (data.success) {
         setUiPhase('validated');
-        setStatusMsg(t('trade_approval_validated_ok'));
+        setStatusIsError(false);
+        const oc = data.order_check;
+        const detail = oc
+          ? ` · ${oc.calculated_volume} ${oc.symbol} @ $${oc.entry_price}`
+          : '';
+        setStatusMsg(`${t('trade_approval_validated_ok')}${detail}`);
       } else {
-        setStatusMsg(`${t('trade_approval_validation_failed')}: ${result.data.error}`);
+        setStatusIsError(true);
+        setStatusMsg(buildErrorMessage(data));
       }
     } catch (err) {
-      // Extract the real error from the response body if available
-      const realError = err?.response?.data?.error || err?.response?.data?.message || err.message;
-      const debugInfo = err?.response?.data?.debug;
-      const debugStr = debugInfo ? ` [pair=${debugInfo.pair}, vol=${debugInfo.volume}, price=${debugInfo.price}]` : '';
-      setStatusMsg(`${t('trade_approval_error')}: ${realError}${debugStr}`);
+      setStatusIsError(true);
+      // Try to extract structured data from the axios error response body
+      const body = err?.response?.data;
+      if (body) {
+        if (body.order_check) setOrderCheck(body.order_check);
+        setStatusMsg(buildErrorMessage(body));
+      } else {
+        setStatusMsg(err.message || 'Unknown error');
+      }
     }
     setBusy(false);
   };
+
+  /** Turn a structured backend error response into a human-readable string */
+  function buildErrorMessage(data) {
+    const oc = data?.order_check;
+    if (data?.error_code === 'VOLUME_TOO_SMALL' && oc) {
+      return [
+        'Order too small for Kraken minimum.',
+        `Calculated volume: ${oc.calculated_volume} ${oc.symbol}`,
+        `Kraken minimum: ${oc.min_volume} ${oc.symbol}`,
+        `USD to deploy: $${Number(oc.usd_amount).toFixed(2)}`,
+        `Minimum USD required: $${Number(oc.min_usd_required).toFixed(2)}`,
+        oc.usd_balance != null ? `Available balance: $${Number(oc.usd_balance).toFixed(2)}` : null,
+        'Increase position size or deposit more USD to Kraken.',
+      ].filter(Boolean).join('\n');
+    }
+    if (data?.error_code === 'VOLUME_ZERO' && oc) {
+      return [
+        'Calculated order volume is zero.',
+        `USD to deploy: $${Number(oc.usd_amount).toFixed(2)}`,
+        oc.usd_balance != null ? `Available balance: $${Number(oc.usd_balance).toFixed(2)}` : null,
+        'Check your USD balance on Kraken or set a higher position size.',
+      ].filter(Boolean).join('\n');
+    }
+    // Generic: just use the error field
+    const base = data?.error || 'Validation failed';
+    if (data?.debug) {
+      const d = data.debug;
+      return `${base}\npair=${d.pair}, volume=${d.volume}, price=${d.price}`;
+    }
+    return base;
+  }
 
   const handleExecuteLive = async () => {
     if (!trade) return;
@@ -79,21 +125,31 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
     if (!confirmed) return;
     setBusy(true);
     setStatusMsg(null);
+    setStatusIsError(false);
     try {
       const result = await base44.functions.invoke('executeTradeOnKraken', {
         trade_approval_id: trade.id,
         validation_only: false,
       });
-      if (result.data.success) {
+      const data = result.data;
+      if (data.success) {
         setUiPhase('sent');
-        setTrade(prev => ({ ...prev, status: 'sent', exchange_order_id: result.data.order_id }));
-        setStatusMsg(`${t('trade_approval_order_submitted')}: ${result.data.kraken_txid || result.data.order_id}`);
+        setStatusIsError(false);
+        setTrade(prev => ({ ...prev, status: 'sent', exchange_order_id: data.order_id }));
+        setStatusMsg(`${t('trade_approval_order_submitted')}: ${data.kraken_txid || data.order_id}`);
       } else {
-        setStatusMsg(`${t('trade_approval_execution_failed')}: ${result.data.error}`);
+        setStatusIsError(true);
+        setStatusMsg(buildErrorMessage(data));
       }
     } catch (err) {
-      const realError = err?.response?.data?.error || err?.response?.data?.message || err.message;
-      setStatusMsg(`${t('trade_approval_error')}: ${realError}`);
+      setStatusIsError(true);
+      const body = err?.response?.data;
+      if (body) {
+        if (body.order_check) setOrderCheck(body.order_check);
+        setStatusMsg(buildErrorMessage(body));
+      } else {
+        setStatusMsg(err.message || 'Unknown error');
+      }
     }
     setBusy(false);
   };
@@ -169,6 +225,8 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
         onExecute={handleExecuteLive}
         onReject={handleReject}
         statusMsg={statusMsg}
+        statusIsError={statusIsError}
+        orderCheck={orderCheck}
       />
     </div>
   );
