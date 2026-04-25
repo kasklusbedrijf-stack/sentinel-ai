@@ -363,6 +363,7 @@ Return ONLY this JSON, no extra text:
     // Create TradeApproval records for each approved plan (status: pending — awaiting user approval)
     for (const plan of (riskReviewResponse.approved_plans || [])) {
       await base44.asServiceRole.entities.TradeApproval.create({
+        pipeline_id: pipelineId,
         asset_symbol: plan.symbol,
         asset_name: plan.symbol,
         direction: plan.direction,

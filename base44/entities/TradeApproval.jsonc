@@ -2,6 +2,10 @@
   "name": "TradeApproval",
   "type": "object",
   "properties": {
+    "pipeline_id": {
+      "type": "string",
+      "description": "Reference to the AgentPipeline run that generated this trade"
+    },
     "asset_symbol": {
       "type": "string",
       "description": "e.g., BTC, ETH"
