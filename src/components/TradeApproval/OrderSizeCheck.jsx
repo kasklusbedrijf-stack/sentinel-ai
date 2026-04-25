@@ -115,25 +115,35 @@ export default function OrderSizeCheck({ trade, orderCheck }) {
       }
     : computeOrderCheck(trade);
 
-  if (!check) return null;
+  // Always render for any trade with a symbol — never silently hide
+  const symbol = check?.symbol || trade?.asset_symbol?.toUpperCase() || '?';
+  const entryPrice = check?.entryPrice ?? parseFloat(trade?.entry_price) ?? null;
 
-  const { symbol, entryPrice, calculatedVol, minVol, minVolumeSource, pairInfo, costMin, usdAmount, usdBalance, minUsdRequired, passes } = check;
+  const calculatedVol   = check?.calculatedVol   ?? null;
+  const minVol          = check?.minVol          ?? null;
+  const minVolumeSource = check?.minVolumeSource ?? 'fallback_table';
+  const pairInfo        = check?.pairInfo        ?? null;
+  const costMin         = check?.costMin         ?? null;
+  const usdAmount       = check?.usdAmount       ?? null;
+  const usdBalance      = check?.usdBalance      ?? null;
+  const minUsdRequired  = check?.minUsdRequired  ?? null;
+  const passes          = check?.passes          ?? null;
 
   const isLiveData = minVolumeSource === 'kraken_api';
   const isUnknown = passes === null;
   const isFail = passes === false;
   const isPass = passes === true;
 
-  const borderColor = isFail ? 'border-red-500/30' : isPass ? 'border-green-500/20' : 'border-border/50';
-  const bgColor = isFail ? 'bg-red-500/5' : isPass ? 'bg-green-500/5' : 'bg-secondary/20';
+  const borderColor = isFail ? 'border-red-500/30' : isPass ? 'border-green-500/20' : 'border-primary/20';
+  const bgColor = isFail ? 'bg-red-500/5' : isPass ? 'bg-green-500/5' : 'bg-secondary/30';
   const Icon = isFail ? AlertCircle : isPass ? CheckCircle2 : Info;
-  const iconColor = isFail ? 'text-red-400' : isPass ? 'text-green-400' : 'text-muted-foreground';
+  const iconColor = isFail ? 'text-red-400' : isPass ? 'text-green-400' : 'text-primary';
 
   const headline = isFail
     ? 'Order too small for Kraken minimum'
     : isPass
     ? 'Order size passes Kraken minimum'
-    : 'Order size (pre-check, USD balance unknown)';
+    : `Kraken order size pre-check · ${symbol}`;
 
   return (
     <div className={cn('rounded-lg border p-3 sm:p-4 space-y-3', bgColor, borderColor)}>
