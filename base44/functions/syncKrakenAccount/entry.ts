@@ -75,9 +75,28 @@ function krakenAssetToSymbol(krakenCode) {
     DOGE: 'DOGE',
     SHIB: 'SHIB',
     UNI: 'UNI',
+    // Fiat mappings
+    ZUSD: 'USD', ZEUR: 'EUR', ZGBP: 'GBP',
+    ZCAD: 'CAD', ZJPY: 'JPY', ZCHF: 'CHF',
+    ZAUD: 'AUD',
   };
   return map[krakenCode] || krakenCode.replace(/^[XZ]/, '');
 }
+
+// Fiat currencies to treat as cash balances (not crypto)
+const FIAT_SYMBOLS = new Set(['USD', 'EUR', 'GBP', 'CAD', 'JPY', 'CHF', 'AUD']);
+
+// Approximate USD rates for fiat (used only when no market price is available)
+// These are rough fallbacks — for EUR/USD the Kraken balance itself is the value.
+const FIAT_USD_RATES = {
+  USD: 1,
+  EUR: 1.08,
+  GBP: 1.26,
+  CAD: 0.73,
+  JPY: 0.0067,
+  CHF: 1.10,
+  AUD: 0.64,
+};
 
 Deno.serve(async (req) => {
   try {
@@ -126,48 +145,79 @@ Deno.serve(async (req) => {
     const portfolioBySymbol = Object.fromEntries(existingPortfolio.map(p => [p.asset_symbol, p]));
 
     const syncedBalances = [];
+    const syncedFiat = [];
 
     for (const [krakenCode, balanceStr] of Object.entries(rawBalances)) {
       const symbol = krakenAssetToSymbol(krakenCode);
       const quantity = parseFloat(balanceStr) || 0;
 
-      // Skip dust, fiat, and stablecoins
+      // Skip true dust
       if (quantity <= 0.000001) continue;
-      if (['EUR', 'USD', 'GBP', 'USDT', 'USDC', 'ZUSD', 'ZEUR'].includes(symbol)) continue;
+      // Skip stablecoins (not fiat, not real crypto) — but keep real fiat
+      if (['USDT', 'USDC', 'BUSD', 'DAI'].includes(symbol)) continue;
 
+      const isFiat = FIAT_SYMBOLS.has(symbol);
       const assetInfo = priceMap[symbol];
-      const currentPrice = assetInfo?.current_price || 0;
-      const currentValue = quantity * currentPrice;
-      const existing = portfolioBySymbol[symbol];
-      const avgBuy = existing?.avg_buy_price || currentPrice;
-      const unrealizedPnl = currentPrice > 0 && avgBuy > 0 ? (currentPrice - avgBuy) * quantity : 0;
-      const unrealizedPnlPct = avgBuy > 0 ? ((currentPrice - avgBuy) / avgBuy) * 100 : 0;
 
-      const record = {
-        asset_symbol: symbol,
-        asset_name: assetInfo?.name || existing?.asset_name || symbol,
-        quantity,
-        current_price: currentPrice,
-        current_value: currentValue,
-        unrealized_pnl: unrealizedPnl,
-        unrealized_pnl_pct: unrealizedPnlPct,
-        avg_buy_price: existing?.avg_buy_price || currentPrice,
-        data_source: 'kraken',
-        last_synced: now,
-      };
+      let currentPrice, currentValue;
+      if (isFiat) {
+        // For fiat: current_price is the USD rate, current_value is quantity * rate
+        currentPrice = FIAT_USD_RATES[symbol] ?? 1;
+        currentValue = quantity * currentPrice;
+      } else {
+        currentPrice = assetInfo?.current_price || 0;
+        currentValue = quantity * currentPrice;
+      }
+
+      const existing = portfolioBySymbol[symbol];
+
+      let record;
+      if (isFiat) {
+        record = {
+          asset_symbol: symbol,
+          asset_name: symbol === 'USD' ? 'US Dollar' : symbol === 'EUR' ? 'Euro' : symbol === 'GBP' ? 'British Pound' : symbol,
+          quantity,
+          current_price: currentPrice,
+          current_value: currentValue,
+          unrealized_pnl: 0,
+          unrealized_pnl_pct: 0,
+          avg_buy_price: currentPrice,
+          category: 'fiat',
+          data_source: 'kraken',
+          last_synced: now,
+        };
+        syncedFiat.push({ symbol, quantity, currentValue });
+      } else {
+        const avgBuy = existing?.avg_buy_price || currentPrice;
+        const unrealizedPnl = currentPrice > 0 && avgBuy > 0 ? (currentPrice - avgBuy) * quantity : 0;
+        const unrealizedPnlPct = avgBuy > 0 ? ((currentPrice - avgBuy) / avgBuy) * 100 : 0;
+        record = {
+          asset_symbol: symbol,
+          asset_name: assetInfo?.name || existing?.asset_name || symbol,
+          quantity,
+          current_price: currentPrice,
+          current_value: currentValue,
+          unrealized_pnl: unrealizedPnl,
+          unrealized_pnl_pct: unrealizedPnlPct,
+          avg_buy_price: existing?.avg_buy_price || currentPrice,
+          category: existing?.category || assetInfo?.category || 'other',
+          data_source: 'kraken',
+          last_synced: now,
+        };
+        syncedBalances.push({ symbol, quantity, currentValue });
+      }
 
       if (existing) {
         await base44.asServiceRole.entities.PortfolioAsset.update(existing.id, record);
       } else {
         await base44.asServiceRole.entities.PortfolioAsset.create(record);
       }
-
-      syncedBalances.push({ symbol, quantity, currentValue });
     }
 
-    // ── 5. Recalculate allocation % ────────────────
-    const totalValue = syncedBalances.reduce((s, b) => s + b.currentValue, 0);
-    if (totalValue > 0 && syncedBalances.length > 0) {
+    // ── 5. Recalculate allocation % (crypto + fiat together) ───
+    const allSynced = [...syncedBalances, ...syncedFiat];
+    const totalValue = allSynced.reduce((s, b) => s + b.currentValue, 0);
+    if (totalValue > 0) {
       const freshPortfolio = await base44.asServiceRole.entities.PortfolioAsset.list('-updated_date', 100);
       for (const asset of freshPortfolio) {
         if (asset.data_source === 'kraken' && asset.current_value != null) {
@@ -199,7 +249,8 @@ Deno.serve(async (req) => {
       success: true,
       kraken_configured: true,
       balances: syncedBalances,
-      balance_count: syncedBalances.length,
+      fiat_balances: syncedFiat,
+      balance_count: syncedBalances.length + syncedFiat.length,
       open_orders: parsedOrders,
       open_order_count: parsedOrders.length,
       total_portfolio_value_usd: totalValue,
