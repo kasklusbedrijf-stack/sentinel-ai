@@ -15,6 +15,7 @@ export default function Pipeline() {
   const { t } = useAppPreferences();
   const [phase, setPhase] = useState('idle'); // idle | running | completed | failed
   const [activePipelineId, setActivePipelineId] = useState(null);
+  const [pipelineId, setPipelineId] = useState(null);
   const [pipelineData, setPipelineData] = useState(null);
   const [currentStep, setCurrentStep] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -53,6 +54,8 @@ export default function Pipeline() {
         setActivePipelineId(res.data.pipeline_id);
         setCurrentStep('done');
         setPhase('completed');
+        // store pipeline_id so "Review Approved Trades" can link to all trades from this run
+        setPipelineId(res.data.pipeline_id);
       } else {
         setPhase('failed');
       }
@@ -66,10 +69,12 @@ export default function Pipeline() {
     setActivePipelineId(null);
     setPipelineData(null);
     setCurrentStep(null);
+    setPipelineId(null);
   };
 
   const handleLoadHistorical = (rec) => {
     setPipelineData(rec);
+    setPipelineId(rec.id);
     setCurrentStep('done');
     setPhase('completed');
     setShowHistory(false);
@@ -160,7 +165,8 @@ export default function Pipeline() {
         <PipelineResults
           pipelineData={pipelineData}
           onReset={handleReset}
-          onViewApprovals={() => navigate('/trade-approval')}
+          pipelineId={pipelineId || activePipelineId || pipelineData?.id}
+          onViewApprovals={() => navigate(`/trade-approval-list?pipeline_id=${pipelineId || activePipelineId || pipelineData?.id}`)}
         />
       )}
 
