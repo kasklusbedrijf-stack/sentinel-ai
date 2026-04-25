@@ -57,7 +57,11 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
         setStatusMsg(`${t('trade_approval_validation_failed')}: ${result.data.error}`);
       }
     } catch (err) {
-      setStatusMsg(`${t('trade_approval_error')}: ${err.message}`);
+      // Extract the real error from the response body if available
+      const realError = err?.response?.data?.error || err?.response?.data?.message || err.message;
+      const debugInfo = err?.response?.data?.debug;
+      const debugStr = debugInfo ? ` [pair=${debugInfo.pair}, vol=${debugInfo.volume}, price=${debugInfo.price}]` : '';
+      setStatusMsg(`${t('trade_approval_error')}: ${realError}${debugStr}`);
     }
     setBusy(false);
   };
@@ -86,7 +90,8 @@ export default function TradeApproval({ tradeApprovalId, onBack }) {
         setStatusMsg(`${t('trade_approval_execution_failed')}: ${result.data.error}`);
       }
     } catch (err) {
-      setStatusMsg(`${t('trade_approval_error')}: ${err.message}`);
+      const realError = err?.response?.data?.error || err?.response?.data?.message || err.message;
+      setStatusMsg(`${t('trade_approval_error')}: ${realError}`);
     }
     setBusy(false);
   };

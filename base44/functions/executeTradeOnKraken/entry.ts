@@ -193,19 +193,65 @@ Deno.serve(async (req) => {
       }
     }
 
-    // --- Build Kraken AddOrder request ---
-    const krakenPair = `${trade.asset_symbol.toUpperCase()}USD`;
-    const quantity = parseFloat(trade.position_size_pct || 1) / 100;
+    // --- Pair mapping: Kraken uses non-standard pair names ---
+    // Reference: https://support.kraken.com/hc/en-us/articles/360001668466
+    const KRAKEN_PAIR_MAP = {
+      BTC:  'XBTUSD',
+      ETH:  'ETHUSD',
+      SOL:  'SOLUSD',
+      XRP:  'XRPUSD',
+      ADA:  'ADAUSD',
+      DOT:  'DOTUSD',
+      MATIC:'MATICUSD',
+      POL:  'POLUSD',
+      LINK: 'LINKUSD',
+      LTC:  'LTCUSD',
+      UNI:  'UNIUSD',
+      ATOM: 'ATOMUSD',
+      AVAX: 'AVAXUSD',
+      DOGE: 'DOGEUSD',
+      FIL:  'FILUSD',
+      NEAR: 'NEARUSD',
+      ARB:  'ARBUSD',
+      OP:   'OPUSD',
+      INJ:  'INJUSD',
+      SUI:  'SUIUSD',
+      APT:  'APTUSD',
+      TIA:  'TIAUSD',
+      WIF:  'WIFUSD',
+      PEPE: 'PEPEUSD',
+    };
+    const krakenPair = KRAKEN_PAIR_MAP[trade.asset_symbol.toUpperCase()] || `${trade.asset_symbol.toUpperCase()}USD`;
+
+    // --- Calculate actual coin volume from estimated_risk and entry_price ---
+    // position_size_pct is a portfolio % — we use estimated_risk as the USD amount to deploy
+    // volume = USD amount at risk / entry price, clamped to a sensible min
+    const entryPrice = parseFloat(trade.edited_entry || trade.entry_price);
+    const usdAmount = parseFloat(trade.estimated_risk || 0) > 0
+      ? parseFloat(trade.estimated_risk)
+      : (parseFloat(trade.position_size_pct || 1) / 100) * parseFloat(balanceData.result?.['ZUSD'] ?? balanceData.result?.['USD'] ?? 100);
+    let quantity = usdAmount / entryPrice;
+    // Round to 8 decimal places (Kraken max precision)
+    quantity = Math.round(quantity * 1e8) / 1e8;
+    if (quantity <= 0) {
+      return Response.json(
+        { success: false, error: `Calculated volume is zero or negative. USD amount: ${usdAmount}, entry price: ${entryPrice}` },
+        { status: 400 }
+      );
+    }
+
     const orderNonce = Date.now().toString();
+    // userref must be a positive int32 — derive from timestamp mod max int32
+    const userref = (Date.now() % 2147483647).toString();
 
     const krakenParams = new URLSearchParams({
       nonce: orderNonce,
       ordertype: 'limit',
       type: trade.direction === 'buy' ? 'buy' : 'sell',
       pair: krakenPair,
-      price: trade.entry_price.toString(),
+      price: entryPrice.toString(),
       volume: quantity.toString(),
-      userref: trade_approval_id.slice(0, 8), // Kraken userref is max 10 chars (int32)
+      userref,
       // [SAFETY 4] EXPLICIT MODE: validate=true means Kraken only validates, never submits
       validate: VALIDATION_MODE ? 'true' : 'false',
     });
@@ -227,7 +273,17 @@ Deno.serve(async (req) => {
     const krakenResponse = await orderResp.json();
 
     if (!orderResp.ok || (krakenResponse.error && krakenResponse.error.length > 0)) {
-      const errorMsg = krakenResponse.error?.join(', ') || 'Unknown Kraken error';
+      const errorMsg = krakenResponse.error?.join(', ') || `HTTP ${orderResp.status}`;
+      const debugInfo = {
+        pair: krakenPair,
+        volume: quantity,
+        price: entryPrice,
+        direction: trade.direction,
+        usd_amount: usdAmount,
+        kraken_raw_errors: krakenResponse.error,
+        kraken_http_status: orderResp.status,
+      };
+      console.error('[executeTradeOnKraken] Kraken rejected order:', JSON.stringify(debugInfo));
       if (!VALIDATION_MODE) {
         await base44.asServiceRole.entities.TradeApproval.update(trade_approval_id, {
           status: 'failed',
@@ -235,7 +291,7 @@ Deno.serve(async (req) => {
         });
       }
       return Response.json(
-        { success: false, error: errorMsg, validation_mode: VALIDATION_MODE },
+        { success: false, error: errorMsg, validation_mode: VALIDATION_MODE, debug: debugInfo },
         { status: 400 }
       );
     }
