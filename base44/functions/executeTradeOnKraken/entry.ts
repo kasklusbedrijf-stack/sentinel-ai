@@ -223,21 +223,64 @@ Deno.serve(async (req) => {
     };
     const krakenPair = KRAKEN_PAIR_MAP[trade.asset_symbol.toUpperCase()] || `${trade.asset_symbol.toUpperCase()}USD`;
 
-    // --- Calculate actual coin volume from estimated_risk and entry_price ---
-    // position_size_pct is a portfolio % — we use estimated_risk as the USD amount to deploy
-    // volume = USD amount at risk / entry price, clamped to a sensible min
+    // --- Kraken minimum order volumes (in base asset units) ---
+    // https://support.kraken.com/hc/en-us/articles/205893708
+    const KRAKEN_MIN_VOLUME = {
+      BTC:  0.0001,
+      ETH:  0.002,
+      SOL:  0.5,
+      XRP:  10,
+      ADA:  10,
+      DOT:  0.5,
+      AVAX: 0.1,
+      MATIC:10,
+      POL:  10,
+      LINK: 0.5,
+      LTC:  0.1,
+      UNI:  0.3,
+      ATOM: 0.3,
+      DOGE: 50,
+      FIL:  0.5,
+      NEAR: 1,
+      ARB:  10,
+      OP:   3,
+      INJ:  0.3,
+      SUI:  2,
+      APT:  0.5,
+      TIA:  0.5,
+      WIF:  2,
+      PEPE: 5000000,
+    };
+
     const entryPrice = parseFloat(trade.edited_entry || trade.entry_price);
+    const usdBalance = parseFloat(balanceData.result?.['ZUSD'] ?? balanceData.result?.['USD'] ?? 0);
+
+    // Volume calculation priority:
+    // 1. estimated_risk (USD at risk) / entry_price  — most accurate when pipeline fills it
+    // 2. position_size_pct% of available USD balance / entry_price — realistic fallback
     const usdAmount = parseFloat(trade.estimated_risk || 0) > 0
       ? parseFloat(trade.estimated_risk)
-      : (parseFloat(trade.position_size_pct || 1) / 100) * parseFloat(balanceData.result?.['ZUSD'] ?? balanceData.result?.['USD'] ?? 100);
-    let quantity = usdAmount / entryPrice;
+      : (parseFloat(trade.position_size_pct || 1) / 100) * usdBalance;
+
+    let quantity = entryPrice > 0 ? usdAmount / entryPrice : 0;
     // Round to 8 decimal places (Kraken max precision)
     quantity = Math.round(quantity * 1e8) / 1e8;
+
+    // Enforce Kraken minimum order volume
+    const minVol = KRAKEN_MIN_VOLUME[trade.asset_symbol.toUpperCase()] ?? 1;
+    if (quantity < minVol) {
+      return Response.json({
+        success: false,
+        error: `Order volume too small: calculated ${quantity} ${trade.asset_symbol} (minimum is ${minVol}). ` +
+               `USD amount: $${usdAmount.toFixed(2)}, entry price: $${entryPrice}. ` +
+               `Increase position size or add USD balance.`,
+      }, { status: 400 });
+    }
     if (quantity <= 0) {
-      return Response.json(
-        { success: false, error: `Calculated volume is zero or negative. USD amount: ${usdAmount}, entry price: ${entryPrice}` },
-        { status: 400 }
-      );
+      return Response.json({
+        success: false,
+        error: `Calculated volume is zero. USD amount: $${usdAmount.toFixed(2)}, entry price: $${entryPrice}, USD balance: $${usdBalance.toFixed(2)}.`,
+      }, { status: 400 });
     }
 
     const orderNonce = Date.now().toString();
