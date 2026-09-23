@@ -1,0 +1,44 @@
+{
+  "name": "CoinGecko Market Sync \u2014 every 15 min",
+  "description": "Fetches live prices, 24h change, volume, market cap for top 20 crypto assets from CoinGecko and updates Asset records.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 15,
+      "interval_unit": "minutes",
+      "interval_anchor": "2026-04-24T01:27:11.299000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "coingecko_market_sync_every_15_min",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncCoinGeckoMarket",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "syncCoinGeckoMarket"
+  }
+}
